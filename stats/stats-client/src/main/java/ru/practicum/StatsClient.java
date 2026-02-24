@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestClient;
+import ru.practicum.dto.request.ViewStatsParamDto;
 import ru.practicum.exceptions.StatsClientException;
 
 import ru.practicum.dto.request.EndPointHitDtoNew;

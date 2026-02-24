@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import ru.practicum.dto.request.EndPointHitDtoNew;
+import ru.practicum.dto.request.ViewStatsParamDto;
 import ru.practicum.exceptions.StatsClientException;
 
 import java.time.LocalDateTime;
