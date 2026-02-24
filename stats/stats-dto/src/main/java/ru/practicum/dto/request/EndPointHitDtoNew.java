@@ -30,6 +30,6 @@ public class EndPointHitDtoNew {
     @Size(max = 45, message = "Длина IP-адреса не должна превышать 45 символов.")
     private String ip;
 
-    @NotNull(message = "Время запроса должно быть указано.")
+    @NotBlank(message = "Время запроса должно быть указано.")
     private String timestamp;
 }

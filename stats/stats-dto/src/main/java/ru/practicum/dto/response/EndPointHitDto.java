@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 /**
  * DTO для полного представления хита конечной точки (с ID).
  * Используется для ответов API с полной информацией.
@@ -25,5 +23,5 @@ public class EndPointHitDto {
 
     private String ip;
 
-    private LocalDateTime timestamp;
+    private String timestamp;
 }
