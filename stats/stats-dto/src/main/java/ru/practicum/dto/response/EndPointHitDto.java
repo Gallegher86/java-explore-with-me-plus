@@ -16,28 +16,14 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EndPointHitDto {
-    /**
-     * Уникальный идентификатор записи
-     */
+
     private Long id;
 
-    /**
-     * Название сервиса
-     */
     private String app;
 
-    /**
-     * URI запроса
-     */
     private String uri;
 
-    /**
-     * IP‑адрес клиента
-     */
     private String ip;
 
-    /**
-     * Время запроса
-     */
     private LocalDateTime timestamp;
 }

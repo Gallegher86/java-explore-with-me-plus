@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,15 +41,22 @@ public class GlobalExceptionHandler {
 
     /**
      * Обрабатывает все остальные исключения.
-     * Возвращает 500 Internal Server Error без деталей стека вызовов.
+     * Возвращает 500 Internal Server Error с деталями стека вызовов.
      */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleGeneralException(Exception ex) {
-        log.error("Неожиданное исключение: {}", ex.getMessage(), ex);
+    public ErrorResponse handleException(final Exception ex) {
+        String errorMessage = "Произошла ошибка на сервере.";
+        log.error("Необработанное исключение: {} - {}", ex.getClass().getSimpleName(), ex.getMessage(), ex);
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        ex.printStackTrace(pw);
+        String stackTrace = sw.toString();
         return ErrorResponse.builder()
                 .errorCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .message("Внутренняя ошибка сервера")
+                .message(errorMessage)
+                .error(ex.getMessage())
+                .stackTrace(stackTrace)
                 .build();
     }
 

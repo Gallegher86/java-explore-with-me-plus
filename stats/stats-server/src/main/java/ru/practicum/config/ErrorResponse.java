@@ -12,18 +12,9 @@ import java.util.List;
 @Data
 @Builder
 public class ErrorResponse {
-    /**
-     * Код HTTP-статуса ошибки
-     */
     private int errorCode;
-
-    /**
-     * Краткое сообщение об ошибке
-     */
     private String message;
-
-    /**
-     * Детали ошибок валидации (если есть)
-     */
+    private String error;
     private List<String> details;
+    private String stackTrace;
 }

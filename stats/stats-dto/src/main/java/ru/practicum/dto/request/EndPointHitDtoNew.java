@@ -8,8 +8,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 /**
  * DTO для создания нового хита конечной точки.
  * Содержит валидационные ограничения для входящих данных.
@@ -33,5 +31,5 @@ public class EndPointHitDtoNew {
     private String ip;
 
     @NotNull(message = "Время запроса должно быть указано.")
-    private LocalDateTime timestamp;
+    private String timestamp;
 }
