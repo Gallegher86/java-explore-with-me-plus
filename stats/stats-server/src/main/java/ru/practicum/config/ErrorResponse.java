@@ -1,20 +1,29 @@
 package ru.practicum.config;
 
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 import java.util.List;
 
+/**
+ * DTO для унифицированного ответа об ошибках.
+ * Содержит код ошибки, сообщение и детали валидации.
+ */
+@Data
 @Builder
-@Getter
-@Setter
-@ToString
 public class ErrorResponse {
+    /**
+     * Код HTTP-статуса ошибки
+     */
     private int errorCode;
+
+    /**
+     * Краткое сообщение об ошибке
+     */
     private String message;
-    private String error;
+
+    /**
+     * Детали ошибок валидации (если есть)
+     */
     private List<String> details;
-    private String stackTrace;
 }
