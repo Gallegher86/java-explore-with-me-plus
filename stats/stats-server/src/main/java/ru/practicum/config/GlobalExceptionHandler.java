@@ -2,10 +2,12 @@ package ru.practicum.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -31,6 +33,19 @@ public class GlobalExceptionHandler {
                 .error(errorMessage)
                 .errorCode(HttpStatus.BAD_REQUEST.value())
                 .details(errors)
+                .build();
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleWrongPath(NoResourceFoundException ex) {
+        String errorMessage = "Ресурс по указанному пути не найден.";
+        String logMessage = String.format("Получен запрос на несуществующий путь %s.", ex.getResourcePath());
+        log.warn(logMessage);
+
+        return ErrorResponse.builder()
+                .error(errorMessage)
+                .errorCode(HttpStatus.NOT_FOUND.value())
                 .build();
     }
 
