@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestClient;
@@ -44,15 +45,15 @@ public class StatsClient {
                 .build();
     }
 
-    public EndPointHitDto hit(EndPointHitDtoNew hitDto) {
+    public ResponseEntity<Void> hit(EndPointHitDtoNew hitDto) {
         log.info("Stats-client получен запрос на отправку данных - hitDto: {}", hitDto);
-        EndPointHitDto response = restClient.post()
+        ResponseEntity<Void> response = restClient.post()
                 .uri(uriBuilder -> uriBuilder.path("/hit").build())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(hitDto)
                 .retrieve()
-                .body(EndPointHitDto.class);
-        log.info("Stats-server ответил на запрос Stats-client, данные записаны: {}", response);
+                .toBodilessEntity();
+        log.info("Stats-server ответил на запрос Stats-client, статус ответа: {}", response.getStatusCode());
         return response;
     }
 
@@ -61,8 +62,8 @@ public class StatsClient {
         List<ViewStatsDto> response = restClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/stats")
-                        .queryParam("start", paramDto.getStart())
-                        .queryParam("end", paramDto.getEnd())
+                        .queryParam("start", paramDto.getStart().toString())
+                        .queryParam("end", paramDto.getEnd().toString())
                         .queryParamIfPresent("uris",
                                 Optional.ofNullable(
                                         CollectionUtils.isEmpty(paramDto.getUris())
