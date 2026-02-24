@@ -12,6 +12,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestClient;
 import ru.practicum.exceptions.StatsClientException;
 
+import ru.practicum.dto.request.EndPointHitDtoNew;
+import ru.practicum.dto.response.ViewStatsDto;
+
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;

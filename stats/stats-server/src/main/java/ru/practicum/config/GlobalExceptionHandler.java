@@ -34,7 +34,6 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.toList());
         logValidationError(ex, errors);
         return ErrorResponse.builder()
-                .error(errorMessage)
                 .errorCode(HttpStatus.BAD_REQUEST.value())
                 .message("Ошибки валидации данных")
                 .details(errors)
@@ -44,13 +43,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleWrongPath(NoResourceFoundException ex) {
-        String errorMessage = "Ресурс по указанному пути не найден.";
         String logMessage = String.format("Получен запрос на несуществующий путь %s.", ex.getResourcePath());
         log.warn(logMessage);
 
         return ErrorResponse.builder()
-                .error(errorMessage)
                 .errorCode(HttpStatus.NOT_FOUND.value())
+                .message("Ресурс по указанному пути не найден.")
                 .build();
     }
 
@@ -69,7 +67,7 @@ public class GlobalExceptionHandler {
         String stackTrace = sw.toString();
         return ErrorResponse.builder()
                 .errorCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .message(errorMessage)
+                .message("Произошла ошибка на сервере.")
                 .error(ex.getMessage())
                 .stackTrace(stackTrace)
                 .build();
