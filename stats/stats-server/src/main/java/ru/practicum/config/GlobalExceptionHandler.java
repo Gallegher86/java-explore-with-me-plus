@@ -2,6 +2,7 @@ package ru.practicum.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -10,30 +11,38 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * Глобальный обработчик исключений для всего приложения.
+ * Унифицирует ответы об ошибках в формате JSON.
+ */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    /**
+     * Обрабатывает ошибки валидации DTO.
+     * Возвращает 400 Bad Request с деталями полей, не прошедших валидацию.
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleInvalidArgumentException(final MethodArgumentNotValidException ex) {
-        String errorMessage = "Выявлены ошибки валидации.";
-
-        List<String> errors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .toList();
-
-        log.warn("Валидация не пройдена ({}): {}.", ex.getClass().getSimpleName(), errors);
-
+    public ErrorResponse handleValidationException(MethodArgumentNotValidException ex) {
+        List<String> errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(this::formatFieldError)
+                .collect(Collectors.toList());
+        logValidationError(ex, errors);
         return ErrorResponse.builder()
-                .error(errorMessage)
                 .errorCode(HttpStatus.BAD_REQUEST.value())
+                .message("Ошибки валидации данных")
                 .details(errors)
                 .build();
     }
 
+    /**
+     * Обрабатывает все остальные исключения.
+     * Возвращает 500 Internal Server Error с деталями стека вызовов.
+     */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleException(final Exception ex) {
@@ -49,5 +58,16 @@ public class GlobalExceptionHandler {
                 .error(ex.getMessage())
                 .stackTrace(stackTrace)
                 .build();
+    }
+
+    private String formatFieldError(FieldError error) {
+        return String.format("Поле '%s': %s", error.getField(), error.getDefaultMessage());
+    }
+
+    private void logValidationError(MethodArgumentNotValidException ex, List<String> errors) {
+        log.warn("Валидация не пройдена: {} ошибок в {} полях. Детали: {}",
+                errors.size(),
+                ex.getBindingResult().getErrorCount(),
+                errors);
     }
 }

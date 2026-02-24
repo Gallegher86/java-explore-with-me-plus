@@ -29,19 +29,42 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<dependency>
-				<groupId>ru.practicum</groupId>
-				<artifactId>stats-dto</artifactId>
-				<version>0.0.1-SNAPSHOT</version>
-			</dependency>
 
-			<dependency>
-				<groupId>ru.practicum</groupId>
-				<artifactId>stats-client</artifactId>
-				<version>0.0.1-SNAPSHOT</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+            <!-- Существующие зависимости -->
+            <dependency>
+                <groupId>ru.practicum</groupId>
+                <artifactId>stats-dto</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>ru.practicum</groupId>
+                <artifactId>stats-client</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+
+            <!-- Новые зависимости с версиями -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-validation</artifactId>
+                <version>3.3.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>1.5.5.Final</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.18.34</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>1.5.5.Final</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
 	<build>
 		<pluginManagement>
