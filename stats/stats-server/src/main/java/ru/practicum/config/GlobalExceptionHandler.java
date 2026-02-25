@@ -51,6 +51,7 @@ public class GlobalExceptionHandler {
                 .message("Ресурс по указанному пути не найден.")
                 .build();
     }
+
     //Обрабатывает парсинг дат и проверки start/end
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
