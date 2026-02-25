@@ -17,12 +17,16 @@ import ru.practicum.dto.request.EndPointHitDtoNew;
 import ru.practicum.dto.response.ViewStatsDto;
 
 import java.nio.charset.StandardCharsets;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
 @Slf4j
 @Component
 public class StatsClient {
+    private static final DateTimeFormatter FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     private final RestClient restClient;
 
     @Autowired
@@ -66,8 +70,8 @@ public class StatsClient {
         List<ViewStatsDto> response = restClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/stats")
-                        .queryParam("start", paramDto.getStart().toString())
-                        .queryParam("end", paramDto.getEnd().toString())
+                        .queryParam("start", paramDto.getStart().format(FORMATTER))
+                        .queryParam("end", paramDto.getEnd().format(FORMATTER))
                         .queryParamIfPresent("uris",
                                 Optional.ofNullable(
                                         CollectionUtils.isEmpty(paramDto.getUris())
