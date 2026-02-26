@@ -52,6 +52,22 @@ public class GlobalExceptionHandler {
                 .build();
     }
 
+    //Обрабатывает парсинг дат и проверки start/end
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleIllegalArgument(final IllegalArgumentException ex) {
+        String errorMessage = "Ошибка в параметрах времени запроса.";
+
+        log.warn("Ошибка в параметрах времени: {} - {}",
+                ex.getClass().getSimpleName(), ex.getMessage());
+
+        return ErrorResponse.builder()
+                .errorCode(HttpStatus.BAD_REQUEST.value())
+                .message(errorMessage)
+                .error(ex.getMessage())
+                .build();
+    }
+
     /**
      * Обрабатывает все остальные исключения.
      * Возвращает 500 Internal Server Error с деталями стека вызовов.
