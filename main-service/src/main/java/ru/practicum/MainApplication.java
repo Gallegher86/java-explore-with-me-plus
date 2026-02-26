@@ -17,14 +17,14 @@ import java.util.List;
 public class MainApplication {
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(MainApplication.class, args);
-        DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime now = LocalDateTime.now();
 
         EndPointHitDtoNew hitDto = EndPointHitDtoNew.builder()
                 .app("main-service")
                 .uri("/test")
                 .ip("192.0.0.1")
-                .timestamp(now.format(FORMATTER))
+                .timestamp(now.format(formatter))
                 .build();
 
         ViewStatsParamDto params = ViewStatsParamDto.builder()
