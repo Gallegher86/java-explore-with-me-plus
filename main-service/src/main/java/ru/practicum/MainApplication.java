@@ -6,27 +6,31 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import ru.practicum.dto.request.EndPointHitDtoNew;
 import ru.practicum.dto.request.ViewStatsParamDto;
+import ru.practicum.dto.response.ViewStatsDto;
 import ru.practicum.exceptions.StatsClientException;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @SpringBootApplication
 public class MainApplication {
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(MainApplication.class, args);
+        DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now();
 
         EndPointHitDtoNew hitDto = EndPointHitDtoNew.builder()
                 .app("main-service")
-                .uri("/utils")
+                .uri("/test")
                 .ip("192.0.0.1")
-                .timestamp(LocalDateTime.now().toString())
+                .timestamp(now.format(FORMATTER))
                 .build();
 
         ViewStatsParamDto params = ViewStatsParamDto.builder()
-                .start(LocalDateTime.now())
-                .end(LocalDateTime.now())
-                .uris(List.of("/utils"))
+                .start(now.minusDays(1))
+                .end(now.plusDays(1))
+                .uris(List.of("/test"))
                 .unique(true)
                 .build();
 
@@ -38,10 +42,14 @@ public class MainApplication {
             System.out.println(ex.getMessage());
         }
 
+        List<ViewStatsDto> stats = null;
+
         try {
-            statsClient.get(params);
+            stats = statsClient.get(params);
         } catch (StatsClientException ex) {
             System.out.println(ex.getMessage());
         }
+
+        System.out.println(stats);
     }
 }

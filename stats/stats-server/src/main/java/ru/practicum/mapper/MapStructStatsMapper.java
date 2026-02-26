@@ -21,6 +21,7 @@ public interface MapStructStatsMapper extends StatsMapper {
      */
     @Override
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "timestamp", ignore = true)
     EndPointHit toEntity(EndPointHitDtoNew dto);
 
     /**

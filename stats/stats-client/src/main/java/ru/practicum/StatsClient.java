@@ -67,21 +67,22 @@ public class StatsClient {
 
     public List<ViewStatsDto> get(ViewStatsParamDto paramDto) {
         log.info("Stats-client получен запрос на получение статистики с параметрами: {}", paramDto);
-        List<ViewStatsDto> response = restClient.get()
+        ResponseEntity<List<ViewStatsDto>> response = restClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/stats")
                         .queryParam("start", paramDto.getStart().format(FORMATTER))
                         .queryParam("end", paramDto.getEnd().format(FORMATTER))
                         .queryParamIfPresent("uris",
                                 Optional.ofNullable(
-                                        CollectionUtils.isEmpty(paramDto.getUris())
-                                                ? null
-                                                : paramDto.getUris()))
+                                        CollectionUtils.isEmpty(paramDto.getUris()) ? null : paramDto.getUris()))
                         .queryParam("unique", paramDto.getUnique())
                         .build())
                 .retrieve()
-                .body(new ParameterizedTypeReference<>() {});
-        log.info("Stats-server ответил на запрос статистики от Stats-client.");
-        return response;
+                .toEntity(new ParameterizedTypeReference<>() {});
+
+        HttpStatusCode status = response.getStatusCode();
+        List<ViewStatsDto> body = response.getBody();
+        log.info("Stats-server ответил на запрос статистики от Stats-client, статус ответа: {}:", status);
+        return body;
     }
 }
