@@ -29,16 +29,9 @@ public class StatsServiceImpl implements StatsService {
     @Override
     public EndPointHitDto addHit(EndPointHitDtoNew dto) {
         log.info("Stats-service: запрос на сохранение хита: {}", dto);
-
-        LocalDateTime timestamp = parseDate(dto.getTimestamp(), "timestamp");
-
         EndPointHit entity = mapper.toEntity(dto);
-        entity.setTimestamp(timestamp);
-
         EndPointHit saved = repository.save(entity);
-
         EndPointHitDto result = mapper.toDto(saved);
-
         log.info("Stats-service: хит сохранён: {}", result);
         return result;
     }
@@ -58,26 +51,28 @@ public class StatsServiceImpl implements StatsService {
             throw new IllegalArgumentException("Параметр end не может быть раньше start");
         }
 
-        // Выбираем базовую статистику из репозитория
         boolean uniqueOnly = Boolean.TRUE.equals(unique);
-
         List<ViewStatsDto> stats;
-        if (uniqueOnly) {
-            stats = repository.getUniqueStats(start, end);
-        } else {
-            stats = repository.getStats(start, end);
-        }
 
-        // Если передали uris — фильтруем уже в памяти
-        if (uris != null && !uris.isEmpty()) {
-            stats = stats.stream()
-                    .filter(s -> uris.contains(s.getUri()))
-                    .toList();
+        // Используем методы репозитория с фильтрацией в БД
+        if (uniqueOnly) {
+            if (uris != null && !uris.isEmpty()) {
+                stats = repository.getUniqueStatsWithFilter(start, end, uris);
+            } else {
+                stats = repository.getUniqueStats(start, end);
+            }
+        } else {
+            if (uris != null && !uris.isEmpty()) {
+                stats = repository.getStatsWithFilter(start, end, uris);
+            } else {
+                stats = repository.getStats(start, end);
+            }
         }
 
         log.info("Stats-service: статистика получена, size={}", stats.size());
         return stats;
     }
+
 
     private LocalDateTime parseDate(String value, String fieldName) {
         if (value == null || value.isBlank()) {

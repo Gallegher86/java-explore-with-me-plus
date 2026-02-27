@@ -10,21 +10,19 @@ import ru.practicum.dto.response.ViewStatsDto;
 import ru.practicum.exceptions.StatsClientException;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @SpringBootApplication
 public class MainApplication {
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(MainApplication.class, args);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime now = LocalDateTime.now();
 
         EndPointHitDtoNew hitDto = EndPointHitDtoNew.builder()
                 .app("main-service")
                 .uri("/test")
                 .ip("192.0.0.1")
-                .timestamp(now.format(formatter))
+                .timestamp(now)
                 .build();
 
         ViewStatsParamDto params = ViewStatsParamDto.builder()

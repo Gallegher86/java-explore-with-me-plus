@@ -39,4 +39,32 @@ public interface EndPointHitRepository extends JpaRepository<EndPointHit, Long> 
             "ORDER BY COUNT(DISTINCT e.ip) DESC")
     List<ViewStatsDto> getUniqueStats(@Param("start") LocalDateTime start,
                                       @Param("end") LocalDateTime end);
+
+    /**
+     * Получает статистику хитов с возможностью фильтрации по спискам URI
+     */
+    @Query("SELECT new ru.practicum.dto.response.ViewStatsDto(e.app, e.uri, COUNT(e.id)) " +
+            "FROM EndPointHit e " +
+            "WHERE e.timestamp BETWEEN :start AND :end " +
+            "AND (:uris IS NULL OR e.uri IN :uris) " +
+            "GROUP BY e.app, e.uri " +
+            "ORDER BY COUNT(e.id) DESC")
+    List<ViewStatsDto> getStatsWithFilter(@Param("start") LocalDateTime start,
+                                          @Param("end") LocalDateTime end,
+                                          @Param("uris") List<String> uris);
+
+    /**
+     * Получает статистику уникальных хитов с фильтрацией по спискам URI
+     */
+    @Query("SELECT new ru.practicum.dto.response.ViewStatsDto(e.app, e.uri, COUNT(DISTINCT e.ip)) " +
+            "FROM EndPointHit e " +
+            "WHERE e.timestamp BETWEEN :start AND :end " +
+            "AND (:uris IS NULL OR e.uri IN :uris) " +
+            "GROUP BY e.app, e.uri " +
+            "ORDER BY COUNT(DISTINCT e.ip) DESC")
+    List<ViewStatsDto> getUniqueStatsWithFilter(@Param("start") LocalDateTime start,
+                                                @Param("end") LocalDateTime end,
+                                                @Param("uris") List<String> uris);
+
 }
+
