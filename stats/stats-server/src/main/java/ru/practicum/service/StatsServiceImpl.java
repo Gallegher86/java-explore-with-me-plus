@@ -29,16 +29,9 @@ public class StatsServiceImpl implements StatsService {
     @Override
     public EndPointHitDto addHit(EndPointHitDtoNew dto) {
         log.info("Stats-service: запрос на сохранение хита: {}", dto);
-
-        LocalDateTime timestamp = dto.getTimestamp();
-
         EndPointHit entity = mapper.toEntity(dto);
-        entity.setTimestamp(timestamp);
-
         EndPointHit saved = repository.save(entity);
-
         EndPointHitDto result = mapper.toDto(saved);
-
         log.info("Stats-service: хит сохранён: {}", result);
         return result;
     }
