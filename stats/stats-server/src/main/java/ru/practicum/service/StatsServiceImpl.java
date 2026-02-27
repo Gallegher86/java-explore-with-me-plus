@@ -30,7 +30,7 @@ public class StatsServiceImpl implements StatsService {
     public EndPointHitDto addHit(EndPointHitDtoNew dto) {
         log.info("Stats-service: запрос на сохранение хита: {}", dto);
 
-        LocalDateTime timestamp = parseDate(dto.getTimestamp(), "timestamp");
+        LocalDateTime timestamp = dto.getTimestamp();
 
         EndPointHit entity = mapper.toEntity(dto);
         entity.setTimestamp(timestamp);
