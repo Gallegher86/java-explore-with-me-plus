@@ -17,4 +17,6 @@ public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPre
             "WHERE e.initiator.id = :userId " +
             "ORDER BY e.id ASC")
     Page<Event> findByUser(@Param("userId") Long userId, Pageable pageable);
+
+    boolean existsByCategoryId(Long categoryId);
 }

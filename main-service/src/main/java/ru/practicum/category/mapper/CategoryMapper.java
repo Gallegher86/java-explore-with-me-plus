@@ -1,6 +1,7 @@
 package ru.practicum.category.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import ru.practicum.category.dto.CategoryDto;
 import ru.practicum.category.dto.NewCategoryDto;
 import ru.practicum.category.model.Category;
@@ -16,6 +17,7 @@ public interface CategoryMapper {
     /**
      * Преобразует NewCategoryDto в сущность Category.
      */
+    @Mapping(target = "id", ignore = true)
     Category toCategory(NewCategoryDto dto);
 
     /**
