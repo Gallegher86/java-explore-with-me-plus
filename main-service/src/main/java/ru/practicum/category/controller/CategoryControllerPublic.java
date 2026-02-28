@@ -6,7 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.category.CategoryService;
+import ru.practicum.category.service.CategoryService;
 import ru.practicum.category.dto.CategoryDto;
 
 import java.util.List;

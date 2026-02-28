@@ -1,4 +1,4 @@
-package ru.practicum.category;
+package ru.practicum.category.service;
 
 import org.springframework.data.domain.Pageable;
 import ru.practicum.category.dto.CategoryDto;
