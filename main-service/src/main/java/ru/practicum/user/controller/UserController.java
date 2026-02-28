@@ -1,13 +1,13 @@
 package ru.practicum.user.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.request.dto.CreateParticipationRequestDto;
 import ru.practicum.request.dto.ParticipationRequestDto;
 import ru.practicum.request.service.RequestService;
 
@@ -29,6 +29,14 @@ public class UserController {
             @PathVariable Long userId) {
         List<ParticipationRequestDto> requests = requestService.getRequestsByUser(userId);
         return ResponseEntity.ok(requests);
+    }
+
+    @PostMapping("/{userId}/requests")
+    public ResponseEntity<ParticipationRequestDto> createParticipationRequest(
+            @PathVariable Long userId,
+            @RequestBody @Valid CreateParticipationRequestDto requestDto) {
+        ParticipationRequestDto createdRequest = requestService.createParticipationRequest(userId, requestDto.getEventId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdRequest);
     }
 }
 

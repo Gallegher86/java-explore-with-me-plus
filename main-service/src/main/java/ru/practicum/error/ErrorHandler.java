@@ -1,4 +1,4 @@
-package ru.practicum.config;
+package ru.practicum.error;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
-import ru.practicum.error.ApiError;
+import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 
 import java.io.PrintWriter;
@@ -57,6 +57,24 @@ public class ErrorHandler {
                 List.of()
         );
     }
+
+    /**
+     * Обрабатывает конфликты при выполнении операции
+     */
+    @ExceptionHandler(ConflictException.class)
+    public ApiError handleConflictException(ConflictException ex) {
+        String logMessage = String.format("Конфликт при выполнении операции: %s", ex.getMessage());
+        log.warn(logMessage);
+
+        return new ApiError(
+                ex.getMessage(),
+                "Conflict",
+                HttpStatus.CONFLICT,
+                LocalDateTime.now(),
+                List.of()
+        );
+    }
+
 
     /**
      * Обрабатывает парсинг дат и проверки start/end

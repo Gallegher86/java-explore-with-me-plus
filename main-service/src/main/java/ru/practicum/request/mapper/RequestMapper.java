@@ -39,19 +39,19 @@ public interface RequestMapper {
 //     */
 //    List<ParticipationRequestDto> toParticipationRequestDtoList(List<Request> requests);
 //
-//    /**
-//     * Преобразует User и Event в сущность Request.
-//     * @param user пользователь, отправивший запрос
-//     * @param event событие, на которое подаётся запрос
-//     * @return сущность Request с заполненными полями:
-//     * - created (текущее время)
-//     * - event (ссылка на событие)
-//     * - requester (ссылка на пользователя)
-//     * - status (PENDING)
-//     */
-//    @Mapping(expression = "java(java.time.LocalDateTime.now())", target = "created")
-//    @Mapping(source = "event", target = "event")
-//    @Mapping(source = "user", target = "requester")
-//    @Mapping(expression = "java(ru.practicum.request.model.Status.PENDING)", target = "status")
-//    Request toRequest(User user, Event event);
+    /**
+     * Преобразует User и Event в сущность Request.
+     * @param user пользователь, отправивший запрос
+     * @param event событие, на которое подаётся запрос
+     * @return сущность Request с заполненными полями:
+     * - created (текущее время)
+     * - event (ссылка на событие)
+     * - requester (ссылка на пользователя)
+     * - status (PENDING)
+     */
+    @Mapping(expression = "java(java.time.LocalDateTime.now())", target = "created")
+    @Mapping(source = "event", target = "event")
+    @Mapping(source = "user", target = "requester")
+    @Mapping(expression = "java(ru.practicum.request.model.Status.PENDING)", target = "status")
+    Request toRequest(User user, Event event);
 }

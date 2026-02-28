@@ -4,7 +4,9 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.exception.NotFoundException;
+import ru.practicum.request.model.QRequest;
 import ru.practicum.request.model.Request;
 import ru.practicum.user.model.User;
 
@@ -41,4 +43,39 @@ public class RequestRepository {
                 .fetch();
     }
 
+    /**
+     * Проверка существования заявки пользователя на конкретное событие
+     */
+    public boolean existsByRequesterIdAndEventId(Long requesterId, Long eventId) {
+        return queryFactory.selectFrom(request)
+                .where(request.requester.id.eq(requesterId)
+                        .and(request.event.id.eq(eventId)))
+                .fetchFirst() != null;
+    }
+
+    /**
+     * Сохранение заявки в базу данных
+     */
+    @Transactional
+    public Request save(Request request) {
+        if (request.getId() == null) {
+            // Новая сущность — вставляем
+            queryFactory.insert(QRequest.request)
+                    .set(QRequest.request.event, request.getEvent())
+                    .set(QRequest.request.requester, request.getRequester())
+                    .set(QRequest.request.created, request.getCreated())
+                    .set(QRequest.request.status, request.getStatus())
+                    .execute();
+        } else {
+            // Обновляем существующую
+            queryFactory.update(QRequest.request)
+                    .set(QRequest.request.event, request.getEvent())
+                    .set(QRequest.request.requester, request.getRequester())
+                    .set(QRequest.request.created, request.getCreated())
+                    .set(QRequest.request.status, request.getStatus())
+                    .where(QRequest.request.id.eq(request.getId()))
+                    .execute();
+        }
+        return request;
+    }
 }

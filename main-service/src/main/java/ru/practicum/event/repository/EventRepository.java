@@ -1,20 +1,24 @@
 package ru.practicum.event.repository;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-import org.springframework.data.repository.query.Param;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 import ru.practicum.event.model.Event;
+import ru.practicum.exception.NotFoundException;
 
-public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPredicateExecutor<Event> {
+@Repository
+@RequiredArgsConstructor
+public class EventRepository {
+    private final JPAQueryFactory queryFactory;
 
-    @Query("SELECT COUNT(e) FROM Event e WHERE e.category.id = :catId")
-    long findCountByCategory(@Param("catId") Long catId);
+    public Event getEventById(Long eventId) {
+        Event event = queryFactory.selectFrom(event)
+                .where(event.id.eq(eventId))
+                .fetchOne();
 
-    @Query("SELECT e FROM Event e " +
-            "WHERE e.initiator.id = :userId " +
-            "ORDER BY e.id ASC")
-    Page<Event> findByUser(@Param("userId") Long userId, Pageable pageable);
+        if (event == null) {
+            throw new NotFoundException("Event with id=" + eventId + " was not found");
+        }
+        return event;
+    }
 }
