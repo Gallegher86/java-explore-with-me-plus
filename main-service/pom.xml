@@ -13,14 +13,6 @@
     <packaging>jar</packaging>
     <name>main-service</name>
 
-    <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <mapstruct.version>1.5.5.Final</mapstruct.version>
-        <lombok.version>1.18.34</lombok.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>ru.practicum</groupId>
@@ -68,18 +60,15 @@
             <groupId>com.querydsl</groupId>
             <artifactId>querydsl-jpa</artifactId>
             <classifier>jakarta</classifier>
-            <version>5.1.0</version>
         </dependency>
         <dependency>
             <groupId>com.querydsl</groupId>
             <artifactId>querydsl-core</artifactId>
-            <version>5.1.0</version>
         </dependency>
         <dependency>
             <groupId>com.querydsl</groupId>
             <artifactId>querydsl-apt</artifactId>
             <classifier>jakarta</classifier>
-            <version>5.1.0</version>
         </dependency>
 
         <dependency>
@@ -97,99 +86,36 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
-            <version>${mapstruct.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct-processor</artifactId>
-            <version>${mapstruct.version}</version>
         </dependency>
 
         <!-- Биндинг для корректной работы Lombok + MapStruct -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok-mapstruct-binding</artifactId>
-            <version>0.2.0</version>
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
-                <executions>
-                    <!-- Первое выполнение: обработка QueryDSL -->
-                    <execution>
-                        <id>querydsl-compile</id>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <phase>generate-sources</phase>
-                        <configuration>
-                            <annotationProcessorPaths>
-                                <path>
-                                    <groupId>com.querydsl</groupId>
-                                    <artifactId>querydsl-apt</artifactId>
-                                    <classifier>jakarta</classifier>
-                                    <version>5.1.0</version>
-                                </path>
-                                <path>
-                                    <groupId>jakarta.persistence</groupId>
-                                    <artifactId>jakarta.persistence-api</artifactId>
-                                    <version>3.1.0</version>
-                                </path>
-                            </annotationProcessorPaths>
-                            <compilerArgs>
-                                <arg>-proc:only</arg>
-                                <arg>-s</arg>
-                                <arg>${project.build.directory}/generated-sources/java</arg>
-                            </compilerArgs>
-                        </configuration>
-                    </execution>
-                    <!-- Второе выполнение: основная компиляция с Lombok + MapStruct -->
-                    <execution>
-                        <id>annotation-processing</id>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <phase>compile</phase>
-                        <configuration>
-                            <annotationProcessorPaths>
-                                <path>
-                                    <groupId>org.mapstruct</groupId>
-                                    <artifactId>mapstruct-processor</artifactId>
-                                    <version>${mapstruct.version}</version>
-                                </path>
-                                <path>
-                                    <groupId>org.projectlombok</groupId>
-                                    <artifactId>lombok</artifactId>
-                                    <version>${lombok.version}</version>
-                                </path>
-                                <path>
-                                    <groupId>org.projectlombok</groupId>
-                                    <artifactId>lombok-mapstruct-binding</artifactId>
-                                    <version>0.2.0</version>
-                                </path>
-                            </annotationProcessorPaths>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-        </plugins>
-    </build>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
 </project>
