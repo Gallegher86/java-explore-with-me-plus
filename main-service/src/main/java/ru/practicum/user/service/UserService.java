@@ -1,19 +1,15 @@
 package ru.practicum.user.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import ru.practicum.user.model.User;
-import ru.practicum.user.repository.UserRepository;
 
-@Slf4j
-@Service
-@RequiredArgsConstructor
-public class UserService {
-    private final UserRepository userRepository;
+import ru.practicum.user.dto.NewUserRequest;
+import ru.practicum.user.dto.UserDto;
 
-    //дописать
-    public User getUserById(Long userId) {
-        return userRepository.findById(userId).get();
-    }
+import java.util.List;
+
+public interface UserService {
+    UserDto create(NewUserRequest newUserRequest);
+
+    List<UserDto> findUsers(Long[] ids,  int from, int size);
+
+    void deleteUser(Long id);
 }

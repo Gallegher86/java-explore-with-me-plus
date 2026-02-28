@@ -30,13 +30,17 @@ public class UserController {
         List<ParticipationRequestDto> requests = requestService.getRequestsByUser(userId);
         return ResponseEntity.ok(requests);
     }
+//    /**
+//     * Добавление запроса от текущего пользователя на участие в событии
+//     */
+//    @PostMapping("/{userId}/requests")
+//    public ResponseEntity<ParticipationRequestDto> createParticipationRequest(
+//            @PathVariable Long userId,
+//            @RequestBody @Valid CreateParticipationRequestDto requestDto) {
+//        ParticipationRequestDto createdRequest = requestService.createParticipationRequest(userId, requestDto.getEventId());
+//        return ResponseEntity.status(HttpStatus.CREATED).body(createdRequest);
+//    }
+    
 
-    @PostMapping("/{userId}/requests")
-    public ResponseEntity<ParticipationRequestDto> createParticipationRequest(
-            @PathVariable Long userId,
-            @RequestBody @Valid CreateParticipationRequestDto requestDto) {
-        ParticipationRequestDto createdRequest = requestService.createParticipationRequest(userId, requestDto.getEventId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdRequest);
-    }
 }
 

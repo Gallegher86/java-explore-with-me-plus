@@ -1,13 +1,17 @@
 package ru.practicum.request.mapper;
 
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import ru.practicum.event.model.Event;
 import ru.practicum.request.dto.ParticipationRequestDto;
 import ru.practicum.request.model.Request;
 import ru.practicum.user.model.User;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Маппер для преобразования между DTO запросов участия и сущностью Request.
@@ -17,13 +21,6 @@ public interface RequestMapper {
 
     /**
      * Преобразует сущность Request в ParticipationRequestDto.
-     * @param request сущность запроса участия
-     * @return DTO запроса участия с полями:
-     * - created
-     * - event (ID события)
-     * - id
-     * - requester (ID пользователя)
-     * - status
      */
     @Mapping(source = "created", target = "created")
     @Mapping(source = "id", target = "id")
@@ -31,27 +28,40 @@ public interface RequestMapper {
     @Mapping(source = "event.id", target = "event")
     @Mapping(source = "requester.id", target = "requester")
     ParticipationRequestDto toParticipationRequestDto(Request request);
-//
+
 //    /**
 //     * Преобразует список сущностей Request в список DTO ParticipationRequestDto.
-//     * @param requests список сущностей запросов участия
-//     * @return список DTO запросов участия
 //     */
 //    List<ParticipationRequestDto> toParticipationRequestDtoList(List<Request> requests);
 //
-    /**
-     * Преобразует User и Event в сущность Request.
-     * @param user пользователь, отправивший запрос
-     * @param event событие, на которое подаётся запрос
-     * @return сущность Request с заполненными полями:
-     * - created (текущее время)
-     * - event (ссылка на событие)
-     * - requester (ссылка на пользователя)
-     * - status (PENDING)
-     */
-    @Mapping(expression = "java(java.time.LocalDateTime.now())", target = "created")
-    @Mapping(source = "event", target = "event")
-    @Mapping(source = "user", target = "requester")
-    @Mapping(expression = "java(ru.practicum.request.model.Status.PENDING)", target = "status")
-    Request toRequest(User user, Event event);
+//    /**
+//     * Преобразует User и Event в сущность Request.
+//     */
+//    @Mapping(target = "created", ignore = true)
+//    @Mapping(source = "event", target = "event")
+//    @Mapping(source = "user", target = "requester")
+//    @Mapping(target = "status", ignore = true)
+//    Request toRequest(User user, Event event);
+//
+//    @AfterMapping
+//    default void setCreatedAndStatus(@MappingTarget Request request) {
+//        if (request.getCreated() == null) {
+//            request.setCreated(LocalDateTime.now());
+//        }
+//        if (request.getStatus() == null) {
+//            request.setStatus(ru.practicum.request.model.Status.PENDING);
+//        }
+//    }
+//
+//    /**
+//     * Валидация входных параметров перед маппингом.
+//     */
+//    default Request toRequestWithValidation(User user, Event event) {
+//        Objects.requireNonNull(user, "User cannot be null");
+//        Objects.requireNonNull(event, "Event cannot be null");
+//
+//        Request request = toRequest(user, event);
+//        setCreatedAndStatus(request);
+//        return request;
+//    }
 }

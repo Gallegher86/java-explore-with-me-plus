@@ -14,10 +14,7 @@ public class EventService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
 
-    public EventFullDto getEventFullDto(Long eventId) {
-        Event event = eventRepository.getEventById(eventId);
-        return eventMapper.toEventFullDto(event);
-    }
+
 
     public Event getEventById(Long eventId) {
         return eventRepository.getEventById(eventId);
