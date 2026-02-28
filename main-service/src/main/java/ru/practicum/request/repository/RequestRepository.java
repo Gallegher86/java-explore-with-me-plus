@@ -1,35 +1,44 @@
 package ru.practicum.request.repository;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import ru.practicum.event.model.Event;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+import ru.practicum.exception.NotFoundException;
 import ru.practicum.request.model.Request;
 import ru.practicum.user.model.User;
 
 import java.util.List;
 
+import static ru.practicum.request.model.QRequest.request;
+import static ru.practicum.user.model.QUser.user;
 
-public interface RequestRepository extends JpaRepository<Request, Long> {
+@Repository
+@RequiredArgsConstructor
+public class RequestRepository {
+    private final JPAQueryFactory queryFactory;
 
-    @Query("SELECT COUNT(r) FROM Request r WHERE r.event.id = :eventId AND r.status = 'CONFIRMED'")
-    int getConfirmedRequestCount(@Param("eventId") Long eventId);
+    /**
+     * Получить все заявки пользователя на участие в событиях через QueryDSL с BooleanExpression
+     */
+    public List<Request> findAllRequestsByUserId(Long userId) {
+        // Проверка существования пользователя
+        User foundUser = queryFactory.selectFrom(user)
+                .where(user.id.eq(userId))
+                .fetchOne();
 
-    @Query("SELECT r FROM Request r WHERE r.event.id = :eventId ORDER BY r.created ASC")
-    Page<Request> findAllByEventId(@Param("eventId") Long eventId, Pageable pageable);
+        if (foundUser == null) {
+            throw new NotFoundException("User with id=" + userId + " was not found");
+        }
 
-    @Query("SELECT r FROM Request r " +
-            "WHERE r.event.id = :eventId AND r.id IN :ids " +
-            "ORDER BY r.created ASC")
-    Page<Request> findRequestsByIds(@Param("eventId") Long eventId,
-                                    @Param("ids") List<Long> ids,
-                                    Pageable pageable);
+        // Строим условие через BooleanExpression
+        BooleanExpression userCondition = request.requester.eq(foundUser);
 
-    List<Request> findAllByEvent(@Param("event") Event event);
+        // Основной запрос с использованием BooleanExpression
+        return queryFactory.selectFrom(request)
+                .where(userCondition)
+                .orderBy(request.created.asc())
+                .fetch();
+    }
 
-    Page<Request> findAllByRequester(@Param("requester") User requester, Pageable pageable);
-
-    List<Request> findByRequester(@Param("requester") User requester);
 }

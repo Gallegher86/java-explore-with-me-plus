@@ -1,36 +1,36 @@
-//package ru.practicum.request.mapper;
-//
-//import org.mapstruct.Mapper;
-//import org.mapstruct.Mapping;
-//import ru.practicum.event.model.Event;
-//import ru.practicum.request.dto.ParticipationRequestDto;
-//import ru.practicum.request.model.Request;
-//import ru.practicum.user.model.User;
-//
-//import java.util.List;
-//
-///**
-// * Маппер для преобразования между DTO запросов участия и сущностью Request.
-// */
-//@Mapper(componentModel = "spring")
-//public interface RequestMapper {
-//
-//    /**
-//     * Преобразует сущность Request в ParticipationRequestDto.
-//     * @param request сущность запроса участия
-//     * @return DTO запроса участия с полями:
-//     * - created
-//     * - event (ID события)
-//     * - id
-//     * - requester (ID пользователя)
-//     * - status
-//     */
-//    @Mapping(source = "created", target = "created")
-//    @Mapping(source = "id", target = "id")
-//    @Mapping(source = "status", target = "status")
-//    @Mapping(source = "event.id", target = "event")
-//    @Mapping(source = "requester.id", target = "requester")
-//    ParticipationRequestDto toParticipationRequestDto(Request request);
+package ru.practicum.request.mapper;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import ru.practicum.event.model.Event;
+import ru.practicum.request.dto.ParticipationRequestDto;
+import ru.practicum.request.model.Request;
+import ru.practicum.user.model.User;
+
+import java.util.List;
+
+/**
+ * Маппер для преобразования между DTO запросов участия и сущностью Request.
+ */
+@Mapper(componentModel = "spring")
+public interface RequestMapper {
+
+    /**
+     * Преобразует сущность Request в ParticipationRequestDto.
+     * @param request сущность запроса участия
+     * @return DTO запроса участия с полями:
+     * - created
+     * - event (ID события)
+     * - id
+     * - requester (ID пользователя)
+     * - status
+     */
+    @Mapping(source = "created", target = "created")
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "status", target = "status")
+    @Mapping(source = "event.id", target = "event")
+    @Mapping(source = "requester.id", target = "requester")
+    ParticipationRequestDto toParticipationRequestDto(Request request);
 //
 //    /**
 //     * Преобразует список сущностей Request в список DTO ParticipationRequestDto.
@@ -54,4 +54,4 @@
 //    @Mapping(source = "user", target = "requester")
 //    @Mapping(expression = "java(ru.practicum.request.model.Status.PENDING)", target = "status")
 //    Request toRequest(User user, Event event);
-//}
+}
