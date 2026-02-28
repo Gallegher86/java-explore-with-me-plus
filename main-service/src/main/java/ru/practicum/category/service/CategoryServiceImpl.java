@@ -76,7 +76,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional(readOnly = true)
     public List<CategoryDto> get(Pageable pageable) {
         log.info("CategoryService: получен запрос на получение списка категорий.");
-        List<Category> saved = categoryRepository.findAll(pageable).getContent();
+        List<Category> saved = categoryRepository.findCategoriesWithPagination(pageable);
         List<CategoryDto> result = categoryMapper.toCategoryDtoList(saved);
         log.info("CategoryService: выдана страница категорий размером: {}, начиная с {}.",
                 saved.size(), pageable.getOffset());
