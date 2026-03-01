@@ -43,6 +43,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserDto> findUsers(Long[] ids, Pageable pageable) {
         List<User> found;
         if (ids == null) {
@@ -55,6 +56,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+    @Transactional
     public void deleteUser(Long id) {
         long deletedCount = userRepository.deleteByIdCustom(id);
 
