@@ -1,10 +1,11 @@
 package ru.practicum.category.controller;
 
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.category.service.CategoryService;
 import ru.practicum.category.dto.CategoryDto;
@@ -19,8 +20,8 @@ public class CategoryControllerPublic {
     private final CategoryService categoryService;
 
     @GetMapping
-    public List<CategoryDto> get(@RequestParam(name = "from", defaultValue = "0") Integer from,
-                                 @RequestParam(name = "size", defaultValue = "10") Integer size) {
+    public List<CategoryDto> get(@PositiveOrZero @RequestParam(name = "from", defaultValue = "0") int from,
+                                 @Positive @RequestParam(name = "size", defaultValue = "10") int size) {
         log.info("CategoryControllerPublic: получен запрос на просмотр списка категорий, " +
                 "начиная с: {}, размером : {}.", from, size);
 
@@ -37,8 +38,6 @@ public class CategoryControllerPublic {
     private Pageable makePageable(Integer from, Integer size) {
         return PageRequest.of(
                 from / size,
-                size,
-                Sort.by(Sort.Direction.ASC, "name")
-        );
+                size);
     }
 }

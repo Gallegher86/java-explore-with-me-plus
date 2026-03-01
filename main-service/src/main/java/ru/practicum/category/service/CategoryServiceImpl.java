@@ -11,8 +11,7 @@ import ru.practicum.category.mapper.CategoryMapper;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
 import ru.practicum.event.repository.EventRepository;
-import ru.practicum.exception.CategoryAlreadyExistException;
-import ru.practicum.exception.CategoryNotEmptyException;
+import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 
 import java.util.List;
@@ -44,7 +43,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         if (eventRepository.existsByCategoryId(catId)) {
             String errorMessage = String.format("Нельзя удалить категорию с id: %d, есть связанные события.", catId);
-            throw new CategoryNotEmptyException(errorMessage);
+            throw new ConflictException(errorMessage);
         }
 
         categoryRepository.deleteById(catId);
@@ -112,7 +111,7 @@ public class CategoryServiceImpl implements CategoryService {
     private void validateName(String name) {
         if (categoryRepository.existsByName(name)) {
             String errorMessage = String.format("CategoryService: категория %s уже существует.", name);
-            throw new CategoryAlreadyExistException(errorMessage);
+            throw new ConflictException(errorMessage);
         }
     }
 }

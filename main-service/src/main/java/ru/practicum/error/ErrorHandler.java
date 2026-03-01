@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -29,6 +30,7 @@ public class ErrorHandler {
      * Возвращает 400 Bad Request с деталями полей, не прошедших валидацию.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleValidationException(MethodArgumentNotValidException ex) {
         List<String> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(this::formatFieldError)
@@ -45,6 +47,7 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleWrongPath(NoResourceFoundException ex) {
         String logMessage = String.format("Получен запрос на несуществующий путь %s.", ex.getResourcePath());
         log.warn(logMessage);
@@ -62,6 +65,7 @@ public class ErrorHandler {
      * Обрабатывает конфликты при выполнении операции
      */
     @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleConflictException(ConflictException ex) {
         String logMessage = String.format("Конфликт при выполнении операции: %s", ex.getMessage());
         log.warn(logMessage);
@@ -75,11 +79,11 @@ public class ErrorHandler {
         );
     }
 
-
     /**
      * Обрабатывает парсинг дат и проверки start/end
      */
     @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleIllegalArgument(IllegalArgumentException ex) {
         String errorMessage = "Ошибка в параметрах времени запроса.";
 
@@ -99,6 +103,7 @@ public class ErrorHandler {
      * Обрабатывает ошибку преобразования типа (например, строка вместо числа в PathVariable)
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         log.warn("Type mismatch error for parameter '{}': {}",
                 ex.getName(), ex.getMessage());
@@ -113,11 +118,12 @@ public class ErrorHandler {
     }
 
     /**
-     * Обрабатывает ошибку «Пользователь не найден»
+     * Обрабатывает ошибку «Объект не найден»
      */
     @ExceptionHandler(NotFoundException.class)
-    public ApiError handleUserNotFound(NotFoundException ex) {
-        log.warn("Пользователь не найден: {}", ex.getMessage());
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiError handleNotFoundException(NotFoundException ex) {
+        log.warn("Объект не найден: {}", ex.getMessage());
 
         return new ApiError(
                 ex.getMessage(),
@@ -133,6 +139,7 @@ public class ErrorHandler {
      * Возвращает 500 Internal Server Error с деталями стектрейса.
      */
     @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError handleException(Exception ex) {
         String errorMessage = "Произошла ошибка на сервере.";
         log.error("Необработанное исключение: {} - {}", ex.getClass().getSimpleName(), ex.getMessage(), ex);
