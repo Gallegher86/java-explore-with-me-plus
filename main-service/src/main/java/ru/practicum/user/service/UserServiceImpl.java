@@ -3,7 +3,6 @@ package ru.practicum.user.service;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,31 +26,33 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto create(@Valid NewUserRequest newUserRequest) {
-        log.info("Создание нового пользователя с email: {}", newUserRequest.getEmail());
+        String email = newUserRequest.getEmail();
+        log.info("Создание нового пользователя с email: {}", email);
+
+        // Проверка на существование пользователя с таким email
+        if (userRepository.existsByEmail(email)) {
+            log.warn("Пользователь с email '{}' уже существует", email);
+            throw new IllegalArgumentException("Пользователь с указанным email уже зарегистрирован");
+        }
+
         User newUser = userMapper.toUser(newUserRequest);
         User savedUser = userRepository.save(newUser);
         log.debug("Пользователь успешно создан с ID: {}", savedUser.getId());
         return userMapper.toUserDto(savedUser);
     }
 
+
     @Override
-    public List<UserDto> findUsers(Long[] ids, int from, int size) {
-        if (from < 0 || size < 1) {
-            throw new IllegalArgumentException("Некорректные параметры пагинации: from должен быть >= 0, size должен быть > 0");
-        }
-
-        int page = from / size;
-        Pageable pageable = PageRequest.of(page, size);
-
+    public List<UserDto> findUsers(Long[] ids, Pageable pageable) {
         List<User> found;
         if (ids == null) {
             found = userRepository.findAll(pageable).getContent();
         } else {
             found = userRepository.findByIdInWithPagination(Arrays.asList(ids), pageable).getContent();
         }
-
         return userMapper.toUserDtoList(found);
     }
+
 
     @Override
     public void deleteUser(Long id) {

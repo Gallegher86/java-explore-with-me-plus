@@ -3,6 +3,8 @@ package ru.practicum.user.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -34,10 +36,17 @@ public class AdminUserController {
             @RequestParam(name = "from", defaultValue = "0") int from,
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
-        List<UserDto> res = userService.findUsers(ids, from, size);
+        if (from < 0 || size < 1) {
+            throw new IllegalArgumentException("Некорректные параметры пагинации: from должен быть >= 0, size должен быть > 0");
+        }
 
+        int page = from / size;
+        Pageable pageable = PageRequest.of(page, size);
+
+        List<UserDto> res = userService.findUsers(ids, pageable);
         return ResponseEntity.ok(res);
     }
+
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
