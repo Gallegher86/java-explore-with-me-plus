@@ -1,22 +1,22 @@
-package ru.practicum.event.mapper;
-
-import org.mapstruct.*;
-import ru.practicum.category.dto.CategoryDto;
-import ru.practicum.category.model.Category;
-import ru.practicum.event.dto.EventFullDto;
-import ru.practicum.event.dto.EventShortDto;
-import ru.practicum.event.dto.NewEventDto;
-import ru.practicum.event.model.Event;
-import ru.practicum.user.dto.UserShortDto;
-import ru.practicum.user.model.User;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-@Mapper(componentModel = "spring", imports = {LocalDateTime.class})
-public interface EventMapper {
+//package ru.practicum.event.mapper;
+//
+//import org.mapstruct.*;
+//import ru.practicum.category.dto.CategoryDto;
+//import ru.practicum.category.model.Category;
+//import ru.practicum.event.dto.EventFullDto;
+//import ru.practicum.event.dto.EventShortDto;
+//import ru.practicum.event.dto.NewEventDto;
+//import ru.practicum.event.model.Event;
+//import ru.practicum.user.dto.UserShortDto;
+//import ru.practicum.user.model.User;
+//
+//import java.time.LocalDateTime;
+//import java.util.List;
+//import java.util.stream.Collectors;
+//import java.util.stream.IntStream;
+//
+//@Mapper(componentModel = "spring", imports = {LocalDateTime.class})
+//public interface EventMapper {
 
 //    @Mapping(source = "annotation", target = "annotation")
 //    @Mapping(target = "category", ignore = true)
@@ -86,4 +86,4 @@ public interface EventMapper {
 //                .mapToObj(i -> toEventShortDto(events.get(i), confirmedRequests.get(i), views.get(i)))
 //                .collect(Collectors.toList());
 //    }
-}
+//}

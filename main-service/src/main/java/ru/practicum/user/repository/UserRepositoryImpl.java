@@ -12,7 +12,6 @@ import ru.practicum.user.model.QUser;
 import ru.practicum.user.model.User;
 
 import java.util.List;
-import java.util.Objects;
 
 @Component
 public class UserRepositoryImpl implements UserRepositoryCustom {

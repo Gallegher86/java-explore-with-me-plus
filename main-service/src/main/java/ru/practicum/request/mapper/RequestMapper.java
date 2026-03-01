@@ -1,17 +1,9 @@
 package ru.practicum.request.mapper;
 
-import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import ru.practicum.event.model.Event;
 import ru.practicum.request.dto.ParticipationRequestDto;
 import ru.practicum.request.model.Request;
-import ru.practicum.user.model.User;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Маппер для преобразования между DTO запросов участия и сущностью Request.

@@ -3,16 +3,11 @@ package ru.practicum.request.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.event.dto.State;
-import ru.practicum.event.model.Event;
 import ru.practicum.event.service.EventService;
-import ru.practicum.exception.ConflictException;
 import ru.practicum.request.dto.ParticipationRequestDto;
 import ru.practicum.request.mapper.RequestMapper;
 import ru.practicum.request.model.Request;
 import ru.practicum.request.repository.RequestRepository;
-import ru.practicum.user.model.User;
 import ru.practicum.user.service.UserService;
 
 import java.util.List;
