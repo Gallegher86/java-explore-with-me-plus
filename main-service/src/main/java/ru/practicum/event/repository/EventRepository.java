@@ -10,13 +10,5 @@ import ru.practicum.event.model.Event;
 
 public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPredicateExecutor<Event> {
 
-    @Query("SELECT COUNT(e) FROM Event e WHERE e.category.id = :catId")
-    long findCountByCategory(@Param("catId") Long catId);
-
-    @Query("SELECT e FROM Event e " +
-            "WHERE e.initiator.id = :userId " +
-            "ORDER BY e.id ASC")
-    Page<Event> findByUser(@Param("userId") Long userId, Pageable pageable);
-
     boolean existsByCategoryId(Long categoryId);
 }

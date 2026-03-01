@@ -5,10 +5,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.exception.CategoryAlreadyExistException;
-import ru.practicum.exception.CategoryNotEmptyException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 
 import java.io.PrintWriter;
@@ -17,97 +17,144 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Глобальный обработчик исключений для main-service.
+ */
 @Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
+
     /**
      * Обрабатывает ошибки валидации DTO.
      * Возвращает 400 Bad Request с деталями полей, не прошедших валидацию.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleValidationException(MethodArgumentNotValidException ex) {
         List<String> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(this::formatFieldError)
                 .collect(Collectors.toList());
         logValidationError(ex, errors);
-        return ApiError.builder()
-                .status(HttpStatus.BAD_REQUEST)
-                .message(ex.getMessage())
-                .reason("Ошибки валидации данных")
-                .errors(errors)
-                .timestamp(LocalDateTime.now())
-                .build();
+
+        return new ApiError(
+                "Ошибки валидации данных",
+                "Validation failed",
+                HttpStatus.BAD_REQUEST,
+                LocalDateTime.now(),
+                errors
+        );
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ApiError handleWrongPath(NoResourceFoundException ex) {
+        String logMessage = String.format("Получен запрос на несуществующий путь %s.", ex.getResourcePath());
+        log.warn(logMessage);
+
+        return new ApiError(
+                "Ресурс по указанному пути не найден.",
+                "Resource not found",
+                HttpStatus.NOT_FOUND,
+                LocalDateTime.now(),
+                List.of()
+        );
     }
 
     /**
-     * Обрабатывает NotFoundException.
-     * Возвращает 404 Not Found c деталями ошибки.
+     * Обрабатывает конфликты при выполнении операции
+     */
+    @ExceptionHandler(ConflictException.class)
+    public ApiError handleConflictException(ConflictException ex) {
+        String logMessage = String.format("Конфликт при выполнении операции: %s", ex.getMessage());
+        log.warn(logMessage);
+
+        return new ApiError(
+                ex.getMessage(),
+                "Conflict",
+                HttpStatus.CONFLICT,
+                LocalDateTime.now(),
+                List.of()
+        );
+    }
+
+
+    /**
+     * Обрабатывает парсинг дат и проверки start/end
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ApiError handleIllegalArgument(IllegalArgumentException ex) {
+        String errorMessage = "Ошибка в параметрах времени запроса.";
+
+        log.warn("Ошибка в параметрах времени: {} - {}",
+                ex.getClass().getSimpleName(), ex.getMessage());
+
+        return new ApiError(
+                errorMessage,
+                "Invalid argument",
+                HttpStatus.BAD_REQUEST,
+                LocalDateTime.now(),
+                List.of(ex.getMessage())
+        );
+    }
+
+    /**
+     * Обрабатывает ошибку преобразования типа (например, строка вместо числа в PathVariable)
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ApiError handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        log.warn("Type mismatch error for parameter '{}': {}",
+                ex.getName(), ex.getMessage());
+
+        return new ApiError(
+                ex.getMessage(),
+                "Incorrectly made request.",
+                HttpStatus.BAD_REQUEST,
+                LocalDateTime.now(),
+                List.of()
+        );
+    }
+
+    /**
+     * Обрабатывает ошибку «Пользователь не найден»
      */
     @ExceptionHandler(NotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ApiError handleNotFoundException(NotFoundException ex) {
-        log.warn("Ресурс не найден: {}", ex.getMessage());
-        return ApiError.builder()
-                .status(HttpStatus.NOT_FOUND)
-                .message(ex.getMessage())
-                .reason("Ресурс не найден.")
-                .timestamp(LocalDateTime.now())
-                .build();
-    }
+    public ApiError handleUserNotFound(NotFoundException ex) {
+        log.warn("Пользователь не найден: {}", ex.getMessage());
 
-    /**
-     * Обрабатывает CategoryAlreadyExistException в category.
-     * Возвращает 409 Conflict c деталями ошибки.
-     */
-    @ExceptionHandler(CategoryAlreadyExistException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleNotFoundException(CategoryAlreadyExistException ex) {
-        log.warn("Категория уже существует: {}", ex.getMessage());
-        return ApiError.builder()
-                .status(HttpStatus.CONFLICT)
-                .message(ex.getMessage())
-                .reason("Категория уже существует.")
-                .timestamp(LocalDateTime.now())
-                .build();
-    }
-
-    /**
-     * Обрабатывает CategoryNotEmptyException в category.
-     * Возвращает 409 Conflict c деталями ошибки.
-     */
-    @ExceptionHandler(CategoryNotEmptyException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleNotFoundException(CategoryNotEmptyException ex) {
-        log.warn("Удаление Категории невозможно, в Категории еще есть события: {}", ex.getMessage());
-        return ApiError.builder()
-                .status(HttpStatus.CONFLICT)
-                .message(ex.getMessage())
-                .reason("Категория не может быть удалена.")
-                .timestamp(LocalDateTime.now())
-                .build();
+        return new ApiError(
+                ex.getMessage(),
+                "Искомый объект не был найден.",
+                HttpStatus.NOT_FOUND,
+                LocalDateTime.now(),
+                List.of()
+        );
     }
 
     /**
      * Обрабатывает все остальные исключения.
-     * Возвращает 500 Internal Server Error с деталями стека вызовов.
+     * Возвращает 500 Internal Server Error с деталями стектрейса.
      */
     @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleException(final Exception ex) {
+    public ApiError handleException(Exception ex) {
         String errorMessage = "Произошла ошибка на сервере.";
         log.error("Необработанное исключение: {} - {}", ex.getClass().getSimpleName(), ex.getMessage(), ex);
+
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         ex.printStackTrace(pw);
         String stackTrace = sw.toString();
-        return ApiError.builder()
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .message("Произошла ошибка на сервере.")
-                .reason(ex.getMessage())
-                .errors(List.of(stackTrace))
-                .timestamp(LocalDateTime.now())
-                .build();
+
+        // Добавляем стектрейс в список ошибок
+        List<String> errorDetails = List.of(
+                ex.getMessage(),
+                "Stack trace: " + stackTrace
+        );
+
+        return new ApiError(
+                errorMessage,
+                "Internal server error",
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                LocalDateTime.now(),
+                errorDetails
+        );
     }
 
     private String formatFieldError(FieldError error) {
