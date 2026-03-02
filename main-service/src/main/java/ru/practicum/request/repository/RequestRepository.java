@@ -11,7 +11,10 @@ import ru.practicum.request.model.Request;
 import ru.practicum.request.model.Status;
 import ru.practicum.user.model.User;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static ru.practicum.request.model.QRequest.request;
 import static ru.practicum.user.model.QUser.user;
@@ -85,6 +88,21 @@ public class RequestRepository {
                 .where(request.event.id.eq(eventId)
                         .and(request.status.eq(Status.CONFIRMED)))
                 .fetchCount();
+    }
+
+    //новый метод - количество подтвержденных заявок сразу по нескольким событиям (один запрос к БД, потом группировка в памяти)
+    public Map<Long, Long> countConfirmedByEventIds(List<Long> eventIds) {
+
+        List<Request> confirmed = queryFactory.selectFrom(request)
+                .where(request.event.id.in(eventIds)
+                        .and(request.status.eq(Status.CONFIRMED)))
+                .fetch();
+
+        return confirmed.stream()
+                .collect(Collectors.groupingBy(
+                        r -> r.getEvent().getId(),
+                        Collectors.counting()
+                ));
     }
 
     public List<Request> findByEventId(Long eventId) {

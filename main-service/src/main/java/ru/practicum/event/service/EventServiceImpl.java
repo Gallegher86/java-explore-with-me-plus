@@ -3,12 +3,14 @@ package ru.practicum.event.service;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.StatsClient;
 import ru.practicum.category.model.Category;
-import ru.practicum.category.repository.CategoryRepository;
+import ru.practicum.common.EntityFinder;
 import ru.practicum.dto.request.ViewStatsParamDto;
 import ru.practicum.dto.response.ViewStatsDto;
 import ru.practicum.event.dto.*;
@@ -23,8 +25,6 @@ import ru.practicum.request.mapper.RequestMapper;
 import ru.practicum.request.model.Request;
 import ru.practicum.request.model.Status;
 import ru.practicum.request.repository.RequestRepository;
-import ru.practicum.user.model.User;
-import ru.practicum.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -39,12 +39,11 @@ import static ru.practicum.event.model.QEvent.event;
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
-    private final UserRepository userRepository;
-    private final CategoryRepository categoryRepository;
     private final RequestRepository requestRepository;
     private final RequestMapper requestMapper;
     private final EventMapper eventMapper;
     private final StatsClient statsClient;
+    private final EntityFinder entityFinder;
 
     // PUBLIC
 
@@ -54,16 +53,28 @@ public class EventServiceImpl implements EventService {
 
         BooleanExpression predicate = buildPublicPredicate(params);
 
-        var page = eventRepository.findAll(predicate, pageable);
+        //если сортировка по дате - задаем ее сразу в запросе к БД
+        Pageable pageableToUse = pageable;
+        if (params.getSort() == EventSort.EVENT_DATE) {
+            pageableToUse = PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    Sort.by(Sort.Direction.ASC, "eventDate")
+            );
+        }
+
+        var page = eventRepository.findAll(predicate, pageableToUse);
         List<Event> events = page.getContent();
 
         // Получаем просмотры пачкой, одним запросом к stats-service
         Map<Long, Integer> viewsMap = fetchViews(events);
 
+        Map<Long, Long> confirmedMap = fetchConfirmedCounts(events);
+
         List<EventShortDto> result = new ArrayList<>();
 
         for (Event e : events) {
-            long confirmed = requestRepository.countConfirmedByEventId(e.getId());
+            long confirmed = confirmedMap.getOrDefault(e.getId(), 0L);
             boolean available = e.getPartLimit() == 0 || confirmed < e.getPartLimit();
 
             if (Boolean.TRUE.equals(params.getOnlyAvailable()) && !available) {
@@ -74,10 +85,8 @@ public class EventServiceImpl implements EventService {
             result.add(eventMapper.toEventShortDto(e, (int) confirmed, views));
         }
 
-        // сортировка по требованию
-        if (params.getSort() == EventSort.EVENT_DATE) {
-            result.sort(Comparator.comparing(EventShortDto::getEventDate));
-        } else if (params.getSort() == EventSort.VIEWS) {
+        // сортировка по просмотрам
+        if (params.getSort() == EventSort.VIEWS) {
             result.sort(Comparator.comparing(EventShortDto::getViews).reversed());
         }
 
@@ -87,8 +96,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto getPublicEvent(Long eventId) {
         log.info("EventService: получение публичного события id={}", eventId);
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
+        Event event = entityFinder.getEventOrThrow(eventId);
 
         if (event.getState() != State.PUBLISHED) {
             // по ТЗ: для не опубликованного события тоже 404
@@ -112,11 +120,13 @@ public class EventServiceImpl implements EventService {
         var page = eventRepository.findAll(predicate, pageable);
         List<Event> events = page.getContent();
 
+        //просмотры и количество подтвержденных заявок
         Map<Long, Integer> viewsMap = fetchViews(events);
+        Map<Long, Long> confirmedMap = fetchConfirmedCounts(events);
 
         List<EventFullDto> result = new ArrayList<>();
         for (Event e : events) {
-            long confirmed = requestRepository.countConfirmedByEventId(e.getId());
+            long confirmed = confirmedMap.getOrDefault(e.getId(), 0L);
             int views = viewsMap.getOrDefault(e.getId(), 0);
             result.add(eventMapper.toEventFullDto(e, (int) confirmed, views));
         }
@@ -128,8 +138,7 @@ public class EventServiceImpl implements EventService {
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest request) {
         log.info("EventService: админ обновляет event id={}, body={}", eventId, request);
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
+        Event event = entityFinder.getEventOrThrow(eventId);
 
         // обновляем только ненулевые поля
         if (request.getAnnotation() != null) {
@@ -142,9 +151,7 @@ public class EventServiceImpl implements EventService {
             event.setTitle(request.getTitle());
         }
         if (request.getCategory() != null) {
-            Category category = categoryRepository.findById(request.getCategory().longValue())
-                    .orElseThrow(() -> new NotFoundException("Категория с id=" +
-                            request.getCategory() + " не найдена"));
+            Category category = entityFinder.getCategoryOrThrow(request.getCategory().longValue());
             event.setCategory(category);
         }
         if (request.getLocation() != null) {
@@ -186,10 +193,9 @@ public class EventServiceImpl implements EventService {
             }
         }
 
-        Event saved = eventRepository.save(event);
-        long confirmed = requestRepository.countConfirmedByEventId(saved.getId());
-        int views = fetchViewsForSingleEvent(saved);
-        return eventMapper.toEventFullDto(saved, (int) confirmed, views);
+        long confirmed = requestRepository.countConfirmedByEventId(event.getId());
+        int views = fetchViewsForSingleEvent(event);
+        return eventMapper.toEventFullDto(event, (int) confirmed, views);
     }
 
     // PRIVATE (user)
@@ -199,12 +205,8 @@ public class EventServiceImpl implements EventService {
     public EventFullDto createEvent(Long userId, NewEventDto newEventDto) {
         log.info("EventService: user {} создает event {}", userId, newEventDto);
 
-        User initiator = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
-
-        Category category = categoryRepository.findById(newEventDto.getCategory().longValue())
-                .orElseThrow(() -> new NotFoundException("Категория с id=" +
-                        newEventDto.getCategory() + " не найдена"));
+        var initiator = entityFinder.getUserOrThrow(userId);
+        var category = entityFinder.getCategoryOrThrow(newEventDto.getCategory().longValue());
 
         //проверка даты события при создании
         LocalDateTime eventDate = newEventDto.getEventDate();
@@ -234,11 +236,13 @@ public class EventServiceImpl implements EventService {
         var page = eventRepository.findAll(predicate, pageable);
         List<Event> events = page.getContent();
 
+        //один запрос за просмотрами и один за подтвержденными заявками
         Map<Long, Integer> viewsMap = fetchViews(events);
+        Map<Long, Long> confirmedMap = fetchConfirmedCounts(events);
 
         List<EventShortDto> result = new ArrayList<>();
         for (Event e : events) {
-            long confirmed = requestRepository.countConfirmedByEventId(e.getId());
+            long confirmed = confirmedMap.getOrDefault(e.getId(), 0L);
             int views = viewsMap.getOrDefault(e.getId(), 0);
             result.add(eventMapper.toEventShortDto(e, (int) confirmed, views));
         }
@@ -248,8 +252,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto getUserEvent(Long userId, Long eventId) {
         log.info("EventService: получаем event {} для user {}", eventId, userId);
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
+        Event event = entityFinder.getEventOrThrow(eventId);
 
         if (!event.getInitiator().getId().equals(userId)) {
             throw new NotFoundException("Событие с id=" + eventId + " для пользователя " + userId + " не найдено");
@@ -265,8 +268,7 @@ public class EventServiceImpl implements EventService {
     public EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserRequest request) {
         log.info("EventService: user {} обновляет event {}, body={}", userId, eventId, request);
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
+        Event event = entityFinder.getEventOrThrow(eventId);
 
         if (!event.getInitiator().getId().equals(userId)) {
             throw new NotFoundException("Событие с id=" + eventId + " для пользователя " + userId + " не найдено");
@@ -286,9 +288,7 @@ public class EventServiceImpl implements EventService {
             event.setTitle(request.getTitle());
         }
         if (request.getCategory() != null) {
-            Category category = categoryRepository.findById(request.getCategory().longValue())
-                    .orElseThrow(() -> new NotFoundException("Категория с id=" +
-                            request.getCategory() + " не найдена"));
+            Category category = entityFinder.getCategoryOrThrow(request.getCategory().longValue());
             event.setCategory(category);
         }
         if (request.getLocation() != null) {
@@ -322,18 +322,16 @@ public class EventServiceImpl implements EventService {
             }
         }
 
-        Event saved = eventRepository.save(event);
-        long confirmed = requestRepository.countConfirmedByEventId(saved.getId());
-        int views = fetchViewsForSingleEvent(saved);
-        return eventMapper.toEventFullDto(saved, (int) confirmed, views);
+        long confirmed = requestRepository.countConfirmedByEventId(event.getId());
+        int views = fetchViewsForSingleEvent(event);
+        return eventMapper.toEventFullDto(event, (int) confirmed, views);
     }
 
     @Override
     public List<ParticipationRequestDto> getEventRequests(Long userId, Long eventId) {
         log.info("EventService: получены запросы на event {} user {}", eventId, userId);
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
+        Event event = entityFinder.getEventOrThrow(eventId);
 
         if (!event.getInitiator().getId().equals(userId)) {
             throw new NotFoundException("Событие с id=" + eventId + " для пользователя " + userId + " не найдено");
@@ -360,8 +358,7 @@ public class EventServiceImpl implements EventService {
             throw new ConflictException("Статус должен быть CONFIRMED или REJECTED");
         }
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
+        Event event = entityFinder.getEventOrThrow(eventId);
 
         if (!event.getInitiator().getId().equals(userId)) {
             throw new NotFoundException("Событие с id=" + eventId + " для пользователя " + userId + " не найдено");
@@ -389,14 +386,10 @@ public class EventServiceImpl implements EventService {
 
             if (req.getStatus() == Status.CONFIRMED) {
                 r.setStatus(Status.CONFIRMED);
-                confirmed.add(requestMapper.toParticipationRequestDto(
-                        requestRepository.save(r)
-                ));
+                confirmed.add(requestMapper.toParticipationRequestDto(r));
             } else {
                 r.setStatus(Status.REJECTED);
-                rejected.add(requestMapper.toParticipationRequestDto(
-                        requestRepository.save(r)
-                ));
+                rejected.add(requestMapper.toParticipationRequestDto(r));
             }
         }
 
@@ -545,5 +538,19 @@ public class EventServiceImpl implements EventService {
         }
         Map<Long, Integer> map = fetchViews(List.of(event));
         return map.getOrDefault(event.getId(), 0);
+    }
+
+    //возвращает количество подтвержденных заявок для списка событий
+    private Map<Long, Long> fetchConfirmedCounts(List<Event> events) {
+        if (events == null || events.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<Long> ids = events.stream()
+                .map(Event::getId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        return requestRepository.countConfirmedByEventIds(ids);
     }
 }

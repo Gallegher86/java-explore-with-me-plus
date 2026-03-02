@@ -10,6 +10,7 @@ import ru.practicum.category.dto.NewCategoryDto;
 import ru.practicum.category.mapper.CategoryMapper;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
+import ru.practicum.common.EntityFinder;
 import ru.practicum.event.repository.EventRepository;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
@@ -23,6 +24,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final EventRepository eventRepository;
     private final CategoryMapper categoryMapper;
+    private final EntityFinder entityFinder;
 
     @Override
     public CategoryDto create(NewCategoryDto dto) {
@@ -39,14 +41,15 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public void delete(Long catId) {
         log.info("CategoryService: получен запрос на удаление категории с id: {}.", catId);
-        validateId(catId);
+
+        Category category = entityFinder.getCategoryOrThrow(catId);
 
         if (eventRepository.existsByCategoryId(catId)) {
             String errorMessage = String.format("Нельзя удалить категорию с id: %d, есть связанные события.", catId);
             throw new ConflictException(errorMessage);
         }
 
-        categoryRepository.deleteById(catId);
+        categoryRepository.delete(category);
         log.info("CategoryService: категория с id: {} удалена.", catId);
     }
 
@@ -55,18 +58,19 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDto update(Long catId, NewCategoryDto dto) {
         log.info("CategoryService: получен запрос на обновление категории с id {}, новое имя: {}.",
                 catId, dto.getName());
-        String name = dto.getName();
-        Category saved = findById(catId);
-        CategoryDto result;
 
-        if (name.equals(saved.getName())) {
-            result = categoryMapper.toCategoryDto(saved);
+        Category saved = entityFinder.getCategoryOrThrow(catId);
+        String newName = dto.getName();
+
+        if (newName.equals(saved.getName())) {
+            CategoryDto result = categoryMapper.toCategoryDto(saved);
             return result;
         }
 
-        validateName(name);
-        saved.setName(name);
-        result = categoryMapper.toCategoryDto(saved);
+        validateName(newName);
+        saved.setName(newName);
+        Category updated = categoryRepository.save(saved);
+        CategoryDto result = categoryMapper.toCategoryDto(updated);
         log.info("CategoryService: категория обновлена: {}", result);
         return result;
     }
@@ -85,27 +89,10 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDto getById(Long catId) {
         log.info("CategoryService: получен запрос на получение категории с id: {}.", catId);
-        Category saved = findById(catId);
+        Category saved = entityFinder.getCategoryOrThrow(catId);
         CategoryDto result = categoryMapper.toCategoryDto(saved);
         log.info("CategoryService: категория выдана: {}", result);
         return result;
-    }
-
-    @Transactional(readOnly = true)
-    private Category findById(Long catId) {
-        Category category = categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException(
-                        String.format("CategoryService: категория с id %d не найдена.", catId)));
-
-        log.info("CategoryService: категория с id {} найдена.", catId);
-        return category;
-    }
-
-    private void validateId(Long catId) {
-        if (!categoryRepository.existsById(catId)) {
-            String errorMessage = String.format("CategoryService: категория с id %d не найдена.", catId);
-            throw new NotFoundException(errorMessage);
-        }
     }
 
     private void validateName(String name) {
