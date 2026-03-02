@@ -13,7 +13,6 @@ import ru.practicum.category.repository.CategoryRepository;
 import ru.practicum.common.EntityFinder;
 import ru.practicum.event.repository.EventRepository;
 import ru.practicum.exception.ConflictException;
-import ru.practicum.exception.NotFoundException;
 
 import java.util.List;
 
