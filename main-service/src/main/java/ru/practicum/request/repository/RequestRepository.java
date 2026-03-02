@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.request.model.QRequest;
 import ru.practicum.request.model.Request;
+import ru.practicum.request.model.Status;
 import ru.practicum.user.model.User;
 
 import java.util.List;
@@ -77,5 +78,25 @@ public class RequestRepository {
                     .execute();
         }
         return request;
+    }
+
+    public long countConfirmedByEventId(Long eventId) {
+        return queryFactory.selectFrom(request)
+                .where(request.event.id.eq(eventId)
+                        .and(request.status.eq(Status.CONFIRMED)))
+                .fetchCount();
+    }
+
+    public List<Request> findByEventId(Long eventId) {
+        return queryFactory.selectFrom(request)
+                .where(request.event.id.eq(eventId))
+                .orderBy(request.created.asc())
+                .fetch();
+    }
+
+    public List<Request> findByIds(List<Long> ids) {
+        return queryFactory.selectFrom(request)
+                .where(request.id.in(ids))
+                .fetch();
     }
 }
