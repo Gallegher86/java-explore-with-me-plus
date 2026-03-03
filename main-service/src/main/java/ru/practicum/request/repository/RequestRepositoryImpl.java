@@ -10,6 +10,8 @@ import ru.practicum.request.model.Status;
 import ru.practicum.user.model.User;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 public class RequestRepositoryImpl extends QuerydslRepositorySupport
@@ -35,6 +37,24 @@ public class RequestRepositoryImpl extends QuerydslRepositorySupport
     }
 
     @Override
+    public Map<Long, Long> confirmedCount(List<Long> eventIds) {
+        List<com.querydsl.core.Tuple> results = queryFactory
+                .select(request.event.id, request.count())
+                .from(request)
+                .where(request.event.id.in(eventIds)
+                        .and(request.status.eq(Status.CONFIRMED)))
+                .groupBy(request.event.id)
+                .fetch();
+
+        return results.stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(request.event.id),
+                        tuple -> tuple.get(request.count()),
+                        (a, b) -> a + b
+                ));
+    }
+
+    @Override
     public List<Request> findAllByEventId(Long eventId) {
         return queryFactory
                 .selectFrom(request)
@@ -43,11 +63,10 @@ public class RequestRepositoryImpl extends QuerydslRepositorySupport
     }
 
     @Override
-    public List<Request> findRequestsByIds(Long eventId, List<Long> ids) {
+    public List<Request> findRequestsByIds(List<Long> ids) {
         return queryFactory
                 .selectFrom(request)
-                .where(request.event.id.eq(eventId)
-                        .and(request.id.in(ids)))
+                .where(request.id.in(ids))
                 .orderBy(request.created.asc())
                 .fetch();
     }

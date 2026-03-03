@@ -39,12 +39,12 @@ public class RequestServiceImpl implements RequestService {
      * @param userId  идентификатор пользователя, создающего запрос
      * @param eventId идентификатор события, на которое создается запрос
      * @return DTO созданного запроса
-     * @throws NotFoundException если пользователь или событие не найдены
+     * @throws NotFoundException         если пользователь или событие не найдены
      * @throws ConditionsNotMetException если нарушены условия создания запроса:
-     *         - запрос уже существует
-     *         - пользователь является инициатором события
-     *         - событие не опубликовано
-     *         - достигнут лимит участников
+     *                                   - запрос уже существует
+     *                                   - пользователь является инициатором события
+     *                                   - событие не опубликовано
+     *                                   - достигнут лимит участников
      */
     @Override
     @Transactional
@@ -74,9 +74,9 @@ public class RequestServiceImpl implements RequestService {
 
         // Проверка лимита участников
         int confirmedCount = getConfirmedCount(eventId);
-        if (event.getParticipantLimit() > 0 && event.getParticipantLimit() <= confirmedCount) {
+        if (event.getPartLimit() > 0 && event.getPartLimit() <= confirmedCount) {
             log.debug("Достигнут лимит участников: eventId={}, limit={}, confirmed={}",
-                    eventId, event.getParticipantLimit(), confirmedCount);
+                    eventId, event.getPartLimit(), confirmedCount);
             throw new ConditionsNotMetException("Достигнут лимит участников");
         }
 
@@ -85,7 +85,7 @@ public class RequestServiceImpl implements RequestService {
         //  Автоматическое подтверждение если не требуется модерация или лимит = 0
         //    Если лимит = 0 - безлимитное участие, подтверждаем сразу
         //    Если requestModeration = false - модерация не требуется, подтверждаем сразу
-        if (!event.isRequestModeration() || event.getParticipantLimit() == 0) {
+        if (!event.isRequestModeration() || event.getPartLimit() == 0) {
             log.debug("Модерация не требуется, статус CONFIRMED: request для eventId={}", eventId);
             request.setStatus(Status.CONFIRMED);
         }

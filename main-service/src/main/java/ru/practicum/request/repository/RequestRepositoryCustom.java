@@ -6,13 +6,16 @@ import ru.practicum.request.model.Status;
 import ru.practicum.user.model.User;
 
 import java.util.List;
+import java.util.Map;
 
 public interface RequestRepositoryCustom {
     int confirmedCount(Long eventId);
 
+    Map<Long, Long> confirmedCount(List<Long> eventIds);
+
     List<Request> findAllByEventId(Long eventId);
 
-    List<Request> findRequestsByIds(Long eventId, List<Long> ids);
+    List<Request> findRequestsByIds(List<Long> ids); // Новый метод
 
     List<Request> findAllByEvent(Event event);
 
