@@ -1,10 +1,9 @@
 package ru.practicum.event.repository;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import ru.practicum.event.model.Event;
 
-@Repository
-@RequiredArgsConstructor
-public class EventRepository {
-
+public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPredicateExecutor<Event> {
+    boolean existsByCategoryId(Long categoryId);
 }

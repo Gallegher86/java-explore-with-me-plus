@@ -87,3 +87,67 @@
 //                .collect(Collectors.toList());
 //    }
 //}
+package ru.practicum.event.mapper;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import ru.practicum.category.mapper.CategoryMapper;
+import ru.practicum.event.dto.*;
+import ru.practicum.event.model.Event;
+import ru.practicum.user.mapper.UserMapper;
+
+@Mapper(componentModel = "spring", uses = {CategoryMapper.class, UserMapper.class})
+public interface EventMapper {
+
+    //Создание Event из NewEventDto
+    //category, initiator, createdOn, publishedOn, state — заполняем в сервисе
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "initiator", ignore = true)
+    @Mapping(target = "createdOn", ignore = true)
+    @Mapping(target = "publishedOn", ignore = true)
+    @Mapping(target = "state", ignore = true)
+    @Mapping(target = "locLat", source = "location.lat")
+    @Mapping(target = "locLon", source = "location.lon")
+    @Mapping(target = "partLimit", source = "participantLimit")
+    Event toEvent(NewEventDto dto);
+
+    //Полный DTO события. Category и initiator берутся через uses = {CategoryMapper, UserMapper}
+    //confirmedRequests и views прокидываем параметрами
+
+    @Mapping(target = "annotation", source = "event.annotation")
+    @Mapping(target = "category", source = "event.category")
+    @Mapping(target = "confirmedRequests", source = "confirmedRequests")
+    @Mapping(target = "createdOn", source = "event.createdOn")
+    @Mapping(target = "description", source = "event.description")
+    @Mapping(target = "eventDate", source = "event.eventDate")
+    @Mapping(target = "id", source = "event.id")
+    @Mapping(target = "initiator", source = "event.initiator")
+    @Mapping(target = "location",
+            expression = "java(new Location(event.getLocLat(), event.getLocLon()))")
+    @Mapping(target = "paid", source = "event.paid")
+    @Mapping(target = "participantLimit", source = "event.partLimit")
+    @Mapping(target = "publishedOn", source = "event.publishedOn")
+    @Mapping(target = "requestModeration", source = "event.requestModeration")
+    @Mapping(target = "state", source = "event.state")
+    @Mapping(target = "title", source = "event.title")
+    @Mapping(target = "views", source = "views")
+    EventFullDto toEventFullDto(Event event,
+                                int confirmedRequests,
+                                int views);
+
+    //Короткий DTO события
+    @Mapping(target = "annotation", source = "event.annotation")
+    @Mapping(target = "category", source = "event.category")
+    @Mapping(target = "confirmedRequests", source = "confirmedRequests")
+    @Mapping(target = "eventDate", source = "event.eventDate")
+    @Mapping(target = "id", source = "event.id")
+    @Mapping(target = "initiator", source = "event.initiator")
+    @Mapping(target = "paid", source = "event.paid")
+    @Mapping(target = "title", source = "event.title")
+    @Mapping(target = "views", source = "views")
+    EventShortDto toEventShortDto(Event event,
+                                  int confirmedRequests,
+                                  int views);
+}
