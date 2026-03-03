@@ -99,7 +99,6 @@ public class CompilationServiceImpl implements CompilationService {
                 throw new NotFoundException("В полученном списке событий есть не существующие.");
             }
         }
-        
         return result;
     }
 
