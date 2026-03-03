@@ -8,9 +8,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.request.model.QRequest;
 import ru.practicum.request.model.Request;
+import ru.practicum.request.model.Status;
 import ru.practicum.user.model.User;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static ru.practicum.request.model.QRequest.request;
 import static ru.practicum.user.model.QUser.user;
@@ -77,5 +80,40 @@ public class RequestRepository {
                     .execute();
         }
         return request;
+    }
+
+    public long countConfirmedByEventId(Long eventId) {
+        return queryFactory.selectFrom(request)
+                .where(request.event.id.eq(eventId)
+                        .and(request.status.eq(Status.CONFIRMED)))
+                .fetchCount();
+    }
+
+    //новый метод - количество подтвержденных заявок сразу по нескольким событиям (один запрос к БД, потом группировка в памяти)
+    public Map<Long, Long> countConfirmedByEventIds(List<Long> eventIds) {
+
+        List<Request> confirmed = queryFactory.selectFrom(request)
+                .where(request.event.id.in(eventIds)
+                        .and(request.status.eq(Status.CONFIRMED)))
+                .fetch();
+
+        return confirmed.stream()
+                .collect(Collectors.groupingBy(
+                        r -> r.getEvent().getId(),
+                        Collectors.counting()
+                ));
+    }
+
+    public List<Request> findByEventId(Long eventId) {
+        return queryFactory.selectFrom(request)
+                .where(request.event.id.eq(eventId))
+                .orderBy(request.created.asc())
+                .fetch();
+    }
+
+    public List<Request> findByIds(List<Long> ids) {
+        return queryFactory.selectFrom(request)
+                .where(request.id.in(ids))
+                .fetch();
     }
 }

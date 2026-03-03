@@ -41,7 +41,6 @@ public class UserServiceImpl implements UserService {
         return userMapper.toUserDto(savedUser);
     }
 
-
     @Override
     @Transactional(readOnly = true)
     public List<UserDto> findUsers(Long[] ids, Pageable pageable) {
@@ -53,7 +52,6 @@ public class UserServiceImpl implements UserService {
         }
         return userMapper.toUserDtoList(found);
     }
-
 
     @Override
     @Transactional
