@@ -8,7 +8,7 @@ import ru.practicum.event.model.Event;
 import java.util.Set;
 
 @Entity
-@Table(name = "compilations", schema = "public")
+@Table(name = "event_compilations", schema = "public")
 @Getter
 @Setter
 public class Compilation {
@@ -24,7 +24,7 @@ public class Compilation {
 
     @ManyToMany
     @JoinTable(
-            name = "compilations_events",
+            name = "compilation_events",
             joinColumns = @JoinColumn(name = "compilation_id"),
             inverseJoinColumns = @JoinColumn(name = "event_id")
     )

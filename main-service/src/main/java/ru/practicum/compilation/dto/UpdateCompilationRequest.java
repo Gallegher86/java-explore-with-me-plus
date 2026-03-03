@@ -5,15 +5,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateCompilationRequest {
-    private List<Long> events;
+    private Set<Long> events;
 
+    @Builder.Default
     private Boolean pinned = false;
 
     private String title;
