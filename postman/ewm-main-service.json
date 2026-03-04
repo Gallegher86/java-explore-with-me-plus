@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "60fcc957-e848-444a-8413-219ba869fd7b",
+    "_postman_id": "bc66ee85-a3e5-4931-8125-26d1198a6079",
     "name": "Test Explore With Me - Main service",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "47137107",
-    "_collection_link": "https://go.postman.co/collection/47137107-60fcc957-e848-444a-8413-219ba869fd7b?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/47137107-bc66ee85-a3e5-4931-8125-26d1198a6079?source=collection_link"
   },
   "item": [
     {
@@ -1730,9 +1730,10 @@
                           "    try {\r",
                           "        const user = await api.addUser(rnd.getUser());\r",
                           "        const category = await api.addCategory(rnd.getCategory());\r",
-                          "        let event = await api.addEvent(user.id, rnd.getEvent(category.id));\r",
-                          "        event = await api.publishEvent(event.id);\r",
-                          "        pm.collectionVariables.set(\"eid\", event.id)\r",
+                          "        const event = await api.addEvent(user.id, rnd.getEvent(category.id));\r",
+                          "        await api.publishEvent(event.id);\r",
+                          "\r",
+                          "        pm.collectionVariables.set(\"eid\", event.id);\r",
                           "    } catch(err) {\r",
                           "        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
                           "    }\r",
