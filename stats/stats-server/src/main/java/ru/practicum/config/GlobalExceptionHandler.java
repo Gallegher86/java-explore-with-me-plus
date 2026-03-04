@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -60,6 +61,21 @@ public class GlobalExceptionHandler {
 
         log.warn("Ошибка в параметрах времени: {} - {}",
                 ex.getClass().getSimpleName(), ex.getMessage());
+
+        return ErrorResponse.builder()
+                .errorCode(HttpStatus.BAD_REQUEST.value())
+                .message(errorMessage)
+                .error(ex.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMissingParameter(MissingServletRequestParameterException ex) {
+        String errorMessage = String.format("В запросе отсутствует параметр %s: %s",
+                ex.getParameterName(), ex.getMessage());
+
+        log.warn(errorMessage);
 
         return ErrorResponse.builder()
                 .errorCode(HttpStatus.BAD_REQUEST.value())

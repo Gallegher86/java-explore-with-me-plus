@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
+import ru.practicum.compilation.model.Compilation;
+import ru.practicum.compilation.repository.CompilationRepository;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.repository.EventRepository;
 import ru.practicum.exception.NotFoundException;
@@ -17,6 +19,7 @@ public class EntityFinder {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final EventRepository eventRepository;
+    private final CompilationRepository compilationRepository;
 
     public User getUserOrThrow(Long id) {
         return userRepository.findById(id)
@@ -31,5 +34,10 @@ public class EntityFinder {
     public Event getEventOrThrow(Long id) {
         return eventRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Событие с id=" + id + " не найдено"));
+    }
+
+    public Compilation getCompilationOrThrow(Long id) {
+        return compilationRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Компиляция с id=" + id + " не найдена"));
     }
 }

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.user.dto.NewUserRequest;
 import ru.practicum.user.dto.UserDto;
@@ -32,7 +33,7 @@ public class UserServiceImpl implements UserService {
         // Проверка на существование пользователя с таким email
         if (userRepository.existsByEmail(email)) {
             log.warn("Пользователь с email '{}' уже существует", email);
-            throw new IllegalArgumentException("Пользователь с указанным email уже зарегистрирован");
+            throw new ConflictException("Пользователь с указанным email уже зарегистрирован");
         }
 
         User newUser = userMapper.toUser(newUserRequest);

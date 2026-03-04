@@ -1,5 +1,6 @@
 package ru.practicum.request.controller;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ public class RequestControllerPrivate {
     @PostMapping
     public ResponseEntity<ParticipationRequestDto> create(
             @PositiveOrZero @PathVariable Long userId,
-            @PositiveOrZero @RequestParam Long eventId
+            @PositiveOrZero @RequestParam @NotNull Long eventId
     ) {
         ParticipationRequestDto result = requestService.create(userId, eventId);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
