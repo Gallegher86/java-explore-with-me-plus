@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS events
     CONSTRAINT EVENTS_PK PRIMARY KEY (id),
     CONSTRAINT fk_events_category FOREIGN KEY (category_id) REFERENCES categories (id),
     CONSTRAINT fk_events_initiator FOREIGN KEY (initiator_id) REFERENCES users (id),
-    CONSTRAINT chk_event_state CHECK (state IN ('PENDING', 'PUBLISHED', 'CANCELLED'))
+    CONSTRAINT chk_event_state CHECK (state IN ('PENDING', 'PUBLISHED', 'CANCELED'))
 );
 
 CREATE TABLE IF NOT EXISTS requests
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS requests
     CONSTRAINT REQUESTS_PK PRIMARY KEY (id),
     CONSTRAINT fk_requests_event FOREIGN KEY (event_id) REFERENCES events (id),
     CONSTRAINT fk_requests_requester FOREIGN KEY (requester_id) REFERENCES users (id),
-    CONSTRAINT chk_request_status CHECK (status IN ('PENDING', 'CONFIRMED', 'REJECTED', 'CANCELLED'))
+    CONSTRAINT chk_request_status CHECK (status IN ('PENDING', 'CONFIRMED', 'REJECTED', 'CANCELED'))
 );
 
 CREATE TABLE IF NOT EXISTS compilation_events
