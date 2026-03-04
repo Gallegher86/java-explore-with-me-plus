@@ -66,9 +66,9 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public List<CompilationDto> get(Pageable pageable, Boolean pinned) {
         log.info("CompilationService: получен запрос на получение списка компиляций.");
-        List<Compilation> saved = new ArrayList<>();
+        List<Compilation> saved;
 
-        if (pinned != null && pinned) {
+        if (pinned != null) {
             saved = compilationRepository.findPinnedCompilations(pinned, pageable).getContent();
         } else {
             saved = compilationRepository.findAllCompilations(pageable).getContent();
