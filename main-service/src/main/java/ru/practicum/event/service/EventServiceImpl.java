@@ -370,8 +370,14 @@ public class EventServiceImpl implements EventService {
         int limit = event.getPartLimit();
         if (req.getStatus() == Status.CONFIRMED && limit != 0) {
             long confirmedBefore = requestRepository.confirmedCount(eventId);
-            //если после подтверждения этих заявок превышаем лимит участников, бросаем 409
-            if (confirmedBefore + requests.size() > limit) {
+
+            //сколько заявок из этого списка мы действительно переведем в CONFIRMED (сейчас в PENDING)
+            long toConfirm = requests.stream()
+                    .filter(r -> r.getStatus() == Status.PENDING)
+                    .count();
+
+            //если уже подтвержденные + новые подтверждения превысят лимит - бросаем 409
+            if (confirmedBefore + toConfirm > limit) {
                 throw new ConflictException("Превышен лимит участников события");
             }
         }
