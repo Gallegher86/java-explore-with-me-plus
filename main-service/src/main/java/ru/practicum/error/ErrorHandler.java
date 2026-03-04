@@ -4,11 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import ru.practicum.exception.BadRequestException;
+import ru.practicum.exception.ConditionsNotMetException;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 
@@ -79,6 +82,36 @@ public class ErrorHandler {
         );
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleBadRequestException(BadRequestException ex) {
+        String logMessage = String.format("Ошибки в запросе при выполнении операции: %s", ex.getMessage());
+        log.warn(logMessage);
+
+        return new ApiError(
+                ex.getMessage(),
+                "BadRequest",
+                HttpStatus.BAD_REQUEST,
+                LocalDateTime.now(),
+                List.of()
+        );
+    }
+
+    @ExceptionHandler(ConditionsNotMetException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleConditionsNotMetException(ConditionsNotMetException ex) {
+        String logMessage = String.format("Конфликт при выполнении операции: %s", ex.getMessage());
+        log.warn(logMessage);
+
+        return new ApiError(
+                ex.getMessage(),
+                "Conflict",
+                HttpStatus.CONFLICT,
+                LocalDateTime.now(),
+                List.of()
+        );
+    }
+
     /**
      * Обрабатывает парсинг дат и проверки start/end
      */
@@ -107,6 +140,21 @@ public class ErrorHandler {
     public ApiError handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         log.warn("Type mismatch error for parameter '{}': {}",
                 ex.getName(), ex.getMessage());
+
+        return new ApiError(
+                ex.getMessage(),
+                "Incorrectly made request.",
+                HttpStatus.BAD_REQUEST,
+                LocalDateTime.now(),
+                List.of()
+        );
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleMissingParameter(MissingServletRequestParameterException ex) {
+        log.warn("Missing parameter '{}': {}",
+                ex.getParameterName(), ex.getMessage());
 
         return new ApiError(
                 ex.getMessage(),

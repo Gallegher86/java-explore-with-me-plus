@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class NewCategoryDto {
     @NotBlank(message = "Название категории мероприятий должно быть указано.")
-    @Size(min = 1, max = 255, message = "Название категории мероприятий должно содержать от 1 до 255 символов.")
+    @Size(min = 3, max = 50, message = "Название категории мероприятий должно содержать от 3 до 50 символов.")
     private String name;
 }

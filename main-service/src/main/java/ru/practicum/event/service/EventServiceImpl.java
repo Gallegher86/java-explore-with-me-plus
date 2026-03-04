@@ -18,6 +18,7 @@ import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.model.QEvent;
 import ru.practicum.event.repository.EventRepository;
+import ru.practicum.exception.BadRequestException;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.request.dto.ParticipationRequestDto;
@@ -172,7 +173,7 @@ public class EventServiceImpl implements EventService {
             LocalDateTime newDate = request.getEventDate();
             LocalDateTime now = LocalDateTime.now();
             if (newDate.isBefore(now.plusHours(1))) {
-                throw new ConflictException("Дата начала события должна быть не ранее чем за час от момента публикации");
+                throw new BadRequestException("Дата начала события должна быть не ранее чем за час от момента публикации");
             }
             event.setEventDate(newDate);
         }
@@ -212,7 +213,7 @@ public class EventServiceImpl implements EventService {
         LocalDateTime eventDate = newEventDto.getEventDate();
         LocalDateTime now = LocalDateTime.now();
         if (eventDate.isBefore(now.plusHours(2))) {
-            throw new ConflictException("Дата мероприятия должна быть не ранее чем через 2 часа от текущего момента");
+            throw new BadRequestException("Дата мероприятия должна быть не ранее чем через 2 часа от текущего момента");
         }
 
         Event event = eventMapper.toEvent(newEventDto);
@@ -309,7 +310,7 @@ public class EventServiceImpl implements EventService {
             LocalDateTime now = LocalDateTime.now();
             // здесь оставили 2 часа для пользователя
             if (newDate.isBefore(now.plusHours(2))) {
-                throw new ConflictException("Дата мероприятия должна быть не ранее чем через 2 часа от текущего момента");
+                throw new BadRequestException("Дата мероприятия должна быть не ранее чем через 2 часа от текущего момента");
             }
             event.setEventDate(newDate);
         }
