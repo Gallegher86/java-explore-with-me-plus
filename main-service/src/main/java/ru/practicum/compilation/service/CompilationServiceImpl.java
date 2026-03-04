@@ -16,7 +16,6 @@ import ru.practicum.event.repository.EventRepository;
 import ru.practicum.exception.NotFoundException;
 import org.springframework.data.domain.Pageable;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
