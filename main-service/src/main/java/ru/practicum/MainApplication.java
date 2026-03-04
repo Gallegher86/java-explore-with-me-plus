@@ -15,39 +15,6 @@ import java.util.List;
 @SpringBootApplication
 public class MainApplication {
     public static void main(String[] args) {
-        ConfigurableApplicationContext context = SpringApplication.run(MainApplication.class, args);
-        LocalDateTime now = LocalDateTime.now();
-
-        EndPointHitDtoNew hitDto = EndPointHitDtoNew.builder()
-                .app("main-service")
-                .uri("/test")
-                .ip("192.0.0.1")
-                .timestamp(now)
-                .build();
-
-        ViewStatsParamDto params = ViewStatsParamDto.builder()
-                .start(now.minusDays(1))
-                .end(now.plusDays(1))
-                .uris(List.of("/test"))
-                .unique(true)
-                .build();
-
-        StatsClient statsClient = context.getBean(StatsClient.class);
-
-        try {
-            statsClient.hit(hitDto);
-        } catch (StatsClientException ex) {
-            System.out.println(ex.getMessage());
-        }
-
-        List<ViewStatsDto> stats = null;
-
-        try {
-            stats = statsClient.get(params);
-        } catch (StatsClientException ex) {
-            System.out.println(ex.getMessage());
-        }
-
-        System.out.println(stats);
+        SpringApplication.run(MainApplication.class, args);
     }
 }
