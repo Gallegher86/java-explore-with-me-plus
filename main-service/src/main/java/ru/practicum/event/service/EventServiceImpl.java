@@ -103,7 +103,7 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Событие с id=" + eventId + " не найдено");
         }
 
-        long confirmed = requestRepository.countConfirmedByEventId(event.getId());
+        long confirmed = requestRepository.confirmedCount(event.getId());
         int views = fetchViewsForSingleEvent(event);
 
         return eventMapper.toEventFullDto(event, (int) confirmed, views);
@@ -193,7 +193,7 @@ public class EventServiceImpl implements EventService {
             }
         }
 
-        long confirmed = requestRepository.countConfirmedByEventId(event.getId());
+        long confirmed = requestRepository.confirmedCount(event.getId());
         int views = fetchViewsForSingleEvent(event);
         return eventMapper.toEventFullDto(event, (int) confirmed, views);
     }
@@ -258,7 +258,7 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Событие с id=" + eventId + " для пользователя " + userId + " не найдено");
         }
 
-        long confirmed = requestRepository.countConfirmedByEventId(event.getId());
+        long confirmed = requestRepository.confirmedCount(event.getId());
         int views = fetchViewsForSingleEvent(event);
         return eventMapper.toEventFullDto(event, (int) confirmed, views);
     }
@@ -322,7 +322,7 @@ public class EventServiceImpl implements EventService {
             }
         }
 
-        long confirmed = requestRepository.countConfirmedByEventId(event.getId());
+        long confirmed = requestRepository.confirmedCount(event.getId());
         int views = fetchViewsForSingleEvent(event);
         return eventMapper.toEventFullDto(event, (int) confirmed, views);
     }
@@ -337,10 +337,10 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Событие с id=" + eventId + " для пользователя " + userId + " не найдено");
         }
 
-        List<Request> requests = requestRepository.findByEventId(eventId);
+        List<Request> requests = requestRepository.findAllByEventId(eventId);
         List<ParticipationRequestDto> result = new ArrayList<>();
         for (Request r : requests) {
-            result.add(requestMapper.toParticipationRequestDto(r));
+            result.add(requestMapper.toParticipantRequestDto(r));
         }
         return result;
     }
@@ -364,20 +364,14 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Событие с id=" + eventId + " для пользователя " + userId + " не найдено");
         }
 
-        List<Request> requests = requestRepository.findByIds(req.getRequestIds());
+        List<Request> requests = requestRepository.findRequestsByIds(req.getRequestIds());
 
         // проверка лимита участников перед подтверждением
         int limit = event.getPartLimit();
         if (req.getStatus() == Status.CONFIRMED && limit != 0) {
-            long confirmedBefore = requestRepository.countConfirmedByEventId(eventId);
-
-            //сколько заявок из этого списка мы действительно переведем в CONFIRMED (сейчас в PENDING)
-            long toConfirm = requests.stream()
-                    .filter(r -> r.getStatus() == Status.PENDING)
-                    .count();
-
-            //если уже подтвержденные + новые подтверждения превысят лимит - бросаем 409
-            if (confirmedBefore + toConfirm > limit) {
+            long confirmedBefore = requestRepository.confirmedCount(eventId);
+            //если после подтверждения этих заявок превышаем лимит участников, бросаем 409
+            if (confirmedBefore + requests.size() > limit) {
                 throw new ConflictException("Превышен лимит участников события");
             }
         }
@@ -392,10 +386,10 @@ public class EventServiceImpl implements EventService {
 
             if (req.getStatus() == Status.CONFIRMED) {
                 r.setStatus(Status.CONFIRMED);
-                confirmed.add(requestMapper.toParticipationRequestDto(r));
+                confirmed.add(requestMapper.toParticipantRequestDto(r));
             } else {
                 r.setStatus(Status.REJECTED);
-                rejected.add(requestMapper.toParticipationRequestDto(r));
+                rejected.add(requestMapper.toParticipantRequestDto(r));
             }
         }
 
@@ -557,6 +551,6 @@ public class EventServiceImpl implements EventService {
                 .filter(Objects::nonNull)
                 .toList();
 
-        return requestRepository.countConfirmedByEventIds(ids);
+        return requestRepository.confirmedCount(ids);
     }
 }
