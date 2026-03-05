@@ -12,5 +12,5 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     @Query("SELECT c FROM Category c ORDER BY c.id")
     List<Category> findCategoriesWithPagination(Pageable pageable);
 
-    boolean existsByName(String name);
+    boolean existsByNameIgnoreCase(String name);
 }

@@ -32,7 +32,7 @@ public class CategoryControllerPublic {
     }
 
     @GetMapping("/{catId}")
-    public CategoryDto getById(@PathVariable Long catId) {
+    public CategoryDto getById(@Positive @PathVariable Long catId) {
         log.info("CategoryControllerPublic: получен запрос на просмотр категории с id: {}.", catId);
         return categoryService.getById(catId);
     }

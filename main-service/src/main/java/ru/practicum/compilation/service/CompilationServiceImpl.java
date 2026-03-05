@@ -2,6 +2,7 @@ package ru.practicum.compilation.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.common.EntityFinder;
@@ -65,13 +66,11 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public List<CompilationDto> get(Pageable pageable, Boolean pinned) {
         log.info("CompilationService: получен запрос на получение списка компиляций.");
-        List<Compilation> saved;
+        Page<Long> pageIds = compilationRepository.findCompilationIds(pinned, pageable);
 
-        if (pinned != null) {
-            saved = compilationRepository.findPinnedCompilations(pinned, pageable).getContent();
-        } else {
-            saved = compilationRepository.findAllCompilations(pageable).getContent();
-        }
+        List<Compilation> saved = pageIds.isEmpty()
+                ? List.of()
+                : compilationRepository.findAllCompilationsWithEvents(pageIds.getContent());
 
         List<CompilationDto> result = saved.stream().map(compilationMapper::toCompilationDto).toList();
         log.info("CompilationService: выдана страница компиляций размером: {}, начиная с {}.",

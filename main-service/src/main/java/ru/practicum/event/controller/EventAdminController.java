@@ -55,7 +55,7 @@ public class EventAdminController {
 
     @PatchMapping("/{eventId}")
     public EventFullDto updateEvent(
-            @PathVariable Long eventId,
+            @Positive @PathVariable Long eventId,
             @RequestBody @Valid UpdateEventAdminRequest request
     ) {
         log.info("EventAdminController: PATCH /admin/events/{}", eventId);

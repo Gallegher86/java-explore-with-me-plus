@@ -95,7 +95,9 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     private void validateName(String name) {
-        if (categoryRepository.existsByName(name)) {
+        String trimmed = name.trim();
+
+        if (categoryRepository.existsByNameIgnoreCase(trimmed)) {
             String errorMessage = String.format("CategoryService: категория %s уже существует.", name);
             throw new ConflictException(errorMessage);
         }
