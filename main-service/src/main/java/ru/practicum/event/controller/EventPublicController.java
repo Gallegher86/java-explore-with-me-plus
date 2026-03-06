@@ -18,9 +18,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
+@Validated
 @RestController
 @RequiredArgsConstructor
-@Validated
 @RequestMapping("/events")
 public class EventPublicController {
 
@@ -64,7 +64,7 @@ public class EventPublicController {
 
     @GetMapping("/{id}")
     public EventFullDto getEvent(
-            @PathVariable Long id,
+            @Positive @PathVariable Long id,
             HttpServletRequest request
     ) {
         log.info("EventPublicController: GET /events/{}", id);

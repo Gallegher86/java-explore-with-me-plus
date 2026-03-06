@@ -28,7 +28,7 @@ public class EventPrivateController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public EventFullDto createEvent(
-            @PathVariable Long userId,
+            @Positive @PathVariable Long userId,
             @RequestBody @Valid NewEventDto newEventDto
     ) {
         log.info("EventPrivateController: POST /users/{}/events", userId);
@@ -37,7 +37,7 @@ public class EventPrivateController {
 
     @GetMapping
     public List<EventShortDto> getUserEvents(
-            @PathVariable Long userId,
+            @Positive @PathVariable Long userId,
             @PositiveOrZero @RequestParam(defaultValue = "0") int from,
             @Positive @RequestParam(defaultValue = "10") int size
     ) {
@@ -49,8 +49,8 @@ public class EventPrivateController {
 
     @GetMapping("/{eventId}")
     public EventFullDto getUserEvent(
-            @PathVariable Long userId,
-            @PathVariable Long eventId
+            @Positive @PathVariable Long userId,
+            @Positive @PathVariable Long eventId
     ) {
         log.info("EventPrivateController: GET /users/{}/events/{}", userId, eventId);
         return eventService.getUserEvent(userId, eventId);
@@ -58,8 +58,8 @@ public class EventPrivateController {
 
     @PatchMapping("/{eventId}")
     public EventFullDto updateUserEvent(
-            @PathVariable Long userId,
-            @PathVariable Long eventId,
+            @Positive @PathVariable Long userId,
+            @Positive @PathVariable Long eventId,
             @RequestBody @Valid UpdateEventUserRequest request
     ) {
         log.info("EventPrivateController: PATCH /users/{}/events/{}", userId, eventId);
@@ -69,8 +69,8 @@ public class EventPrivateController {
     //Получение заявок на участие в событии текущего пользователя
     @GetMapping("/{eventId}/requests")
     public List<ParticipationRequestDto> getEventRequests(
-            @PathVariable Long userId,
-            @PathVariable Long eventId
+            @Positive @PathVariable Long userId,
+            @Positive @PathVariable Long eventId
     ) {
         log.info("EventPrivateController: GET /users/{}/events/{}/requests", userId, eventId);
         return eventService.getEventRequests(userId, eventId);
@@ -79,8 +79,8 @@ public class EventPrivateController {
     //Изменение статуса заявок (CONFIRMED / REJECTED)
     @PatchMapping("/{eventId}/requests")
     public EventRequestStatusUpdateResult updateEventRequestsStatus(
-            @PathVariable Long userId,
-            @PathVariable Long eventId,
+            @Positive @PathVariable Long userId,
+            @Positive @PathVariable Long eventId,
             @RequestBody @Valid EventRequestStatusUpdateRequest request
     ) {
         log.info("EventPrivateController: PATCH /users/{}/events/{}/requests", userId, eventId);
