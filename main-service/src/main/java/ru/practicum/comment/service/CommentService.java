@@ -1,10 +1,8 @@
 package ru.practicum.comment.service;
 
-import ru.practicum.comment.dto.CommentFullDto;
-import ru.practicum.comment.dto.CommentShortDto;
-import ru.practicum.comment.dto.CommentStatusUpdateRequest;
-import ru.practicum.comment.dto.NewCommentDto;
+import ru.practicum.comment.dto.*;
 
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface CommentService {
@@ -16,7 +14,7 @@ public interface CommentService {
 
     List<CommentShortDto> approveComments(CommentStatusUpdateRequest request);
 
-    List<CommentFullDto> getComments();
+    List<CommentFullDto> getComments(AdminCommentFilterParams params, Pageable pageable);
     
     CommentFullDto getCommentById(Long commentId);
     

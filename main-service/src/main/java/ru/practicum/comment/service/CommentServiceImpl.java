@@ -1,20 +1,16 @@
 package ru.practicum.comment.service;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.category.dto.CategoryDto;
-import ru.practicum.category.dto.NewCategoryDto;
-import ru.practicum.category.model.Category;
-import ru.practicum.comment.dto.CommentShortDto;
-import ru.practicum.comment.dto.CommentStatusUpdateRequest;
-import ru.practicum.comment.dto.NewCommentDto;
+import ru.practicum.comment.dto.*;
 import ru.practicum.comment.mapper.CommentMapper;
 import ru.practicum.comment.model.Comment;
 import ru.practicum.comment.repository.CommentRepository;
 import ru.practicum.common.EntityFinder;
-import ru.practicum.compilation.model.Compilation;
 import ru.practicum.event.dto.State;
 import ru.practicum.event.model.Event;
 import ru.practicum.exception.ConflictException;
@@ -23,6 +19,8 @@ import ru.practicum.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static ru.practicum.comment.model.QComment.comment;
 
 @Slf4j
 @Service
@@ -51,7 +49,7 @@ public class CommentServiceImpl implements CommentService {
         comment.setState(State.PENDING);
 
         Comment saved = commentRepository.save(comment);
-        CommentShortDto result = commentMapper.toCommentShortDto(saved, author.getId(), event.getId());
+        CommentShortDto result = commentMapper.toCommentShortDto(saved);
         log.info("CommentService: комментарий сохранен: {}", result);
         return result;
     }
@@ -69,7 +67,7 @@ public class CommentServiceImpl implements CommentService {
                     + " от пользователя " + userId + " не найден, обновление невозможно.");
         }
 
-        if (saved.getState().equals(State.PUBLISHED)) {
+        if (saved.getState() == State.PUBLISHED) {
             throw new ConflictException("Нельзя изменить опубликованный комментарий.");
         }
 
@@ -77,7 +75,7 @@ public class CommentServiceImpl implements CommentService {
             saved.setText(request.getText());
         }
 
-        CommentShortDto result = commentMapper.toCommentShortDto(saved, userId, saved.getEvent().getId());
+        CommentShortDto result = commentMapper.toCommentShortDto(saved);
 
         log.info("CommentService: комментарий обновлен: {}.", result);
         return result;
@@ -103,7 +101,46 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public List<CommentShortDto> approveComments(CommentStatusUpdateRequest request) {
-        return List.of();
+        log.info("CommentService: получен запрос админа на изменение статуса комментариев с id: {}.",
+                request.getCommentIds());
+        List<Comment> comments = commentRepository.findAllByIdIn(request.getCommentIds());
+
+        if (comments.size() != request.getCommentIds().size()) {
+            throw new NotFoundException("В полученном списке комментариев есть не существующие.");
+        }
+
+        State newState = request.getStateAction() == CommentStateActionAdmin.APPROVE_COMMENT
+                ? State.PUBLISHED
+                : State.CANCELED;
+
+        comments.forEach(c -> c.setState(newState));
+        commentRepository.saveAll(comments);
+
+        List<CommentShortDto> result = comments.stream()
+                .map(commentMapper::toCommentShortDto)
+                .toList();
+
+        log.info("CommentService: Обновлен статус {} комментариев.", result.size());
+        return result;
+    }
+
+    @Override
+    public List<CommentFullDto> getComments(AdminCommentFilterParams params, Pageable pageable) {
+        log.info("CommentService: получен запрос админа на получение комментариев.");
+        BooleanExpression predicate = buildPredicate(params);
+        List<Comment> comments = commentRepository.findAll(predicate, pageable).getContent();
+        List<CommentFullDto> result = comments.stream().map(commentMapper::toCommentFullDto).toList();
+        log.info("CommentService: Выдан список из {} комментариев.", result.size());
+        return result;
+    }
+
+    @Override
+    public CommentFullDto getCommentById(Long commentId) {
+        log.info("CommentService: получен запрос админа на получение комментария с id: {}.", commentId);
+        Comment saved = entityFinder.getCommentOrThrow(commentId);
+        CommentFullDto result = commentMapper.toCommentFullDto(saved);
+        log.info("CommentService: комментарий найден: {}.", result);
+        return result;
     }
 
     @Override
@@ -115,4 +152,44 @@ public class CommentServiceImpl implements CommentService {
         log.info("CommentService: комментарий с id: {} удален админом.", commentId);
     }
 
+    private BooleanExpression buildPredicate(AdminCommentFilterParams params) {
+        LocalDateTime start = params.getRangeStart();
+        LocalDateTime end = params.getRangeEnd();
+
+        if (start != null && end != null && end.isBefore(start)) {
+            throw new IllegalArgumentException("Дата конца выборки комментариев " +
+                    "не может быть раньше даты начала");
+        }
+
+        BooleanExpression predicate = comment.isNotNull();
+
+        if (params.getComments() != null && !params.getComments().isEmpty()) {
+            predicate = predicate.and(comment.id.in(params.getComments()));
+        }
+
+        if (params.getAuthors() != null && !params.getAuthors().isEmpty()) {
+            predicate = predicate.and(comment.author.id.in(params.getAuthors()));
+        }
+
+        if (params.getEvents() != null && !params.getEvents().isEmpty()) {
+            predicate = predicate.and(comment.event.id.in(params.getEvents()));
+        }
+
+        if (params.getStates() != null && !params.getStates().isEmpty()) {
+            predicate = predicate.and(comment.state.in(params.getStates()));
+        }
+
+        if (params.getText() != null && !params.getText().isEmpty()) {
+            predicate = predicate.and(comment.text.containsIgnoreCase(params.getText()));
+        }
+
+        if (start != null) {
+            predicate = predicate.and(comment.createdOn.goe(start));
+        }
+        if (end != null) {
+            predicate = predicate.and(comment.createdOn.loe(end));
+        }
+
+        return predicate;
+    }
 }
