@@ -7,8 +7,7 @@ import java.util.List;
 
 public class CommentStatusUpdateRequest {
     @NotEmpty()
-    @NotNull()
-    private List<Long> commentIds;
+    private List<@NotNull Long> commentIds;
 
     @NotNull()
     private CommentStateActionAdmin stateAction;

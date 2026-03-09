@@ -24,10 +24,12 @@ public class CommentPrivateController {
     @ResponseStatus(HttpStatus.CREATED)
     public CommentShortDto createComment(
             @Positive @PathVariable Long userId,
+            @Positive @RequestParam Long eventId,
             @RequestBody @Valid NewCommentDto dto
     ) {
-        log.info("CommentPrivateController POST /users/{}/comments, dto: {}", userId, dto);
-        return commentService.createComment(userId, dto);
+        log.info("CommentPrivateController POST /users/{}/comments, event: {}, dto: {}",
+                userId, eventId,  dto);
+        return commentService.createComment(userId, eventId, dto);
     }
 
     @PatchMapping("/{commentId}")
