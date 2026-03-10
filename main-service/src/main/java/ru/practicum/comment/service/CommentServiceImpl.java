@@ -73,6 +73,10 @@ public class CommentServiceImpl implements CommentService {
 
         if (request.getText() != null) {
             saved.setText(request.getText());
+
+            if (saved.getState() == State.CANCELED) {
+                saved.setState(State.PENDING);
+            }
         }
 
         CommentShortDto result = commentMapper.toCommentShortDto(saved);
@@ -114,7 +118,6 @@ public class CommentServiceImpl implements CommentService {
                 : State.CANCELED;
 
         comments.forEach(c -> c.setState(newState));
-        commentRepository.saveAll(comments);
 
         List<CommentShortDto> result = comments.stream()
                 .map(commentMapper::toCommentShortDto)
