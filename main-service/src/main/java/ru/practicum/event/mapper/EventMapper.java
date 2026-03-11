@@ -92,9 +92,12 @@ package ru.practicum.event.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.practicum.category.mapper.CategoryMapper;
+import ru.practicum.comment.dto.CommentEventDto;
 import ru.practicum.event.dto.*;
 import ru.practicum.event.model.Event;
 import ru.practicum.user.mapper.UserMapper;
+
+import java.util.List;
 
 @Mapper(componentModel = "spring", uses = {CategoryMapper.class, UserMapper.class})
 public interface EventMapper {
@@ -133,9 +136,11 @@ public interface EventMapper {
     @Mapping(target = "state", source = "event.state")
     @Mapping(target = "title", source = "event.title")
     @Mapping(target = "views", source = "views")
+    @Mapping(target = "comments", source = "comments")
     EventFullDto toEventFullDto(Event event,
                                 int confirmedRequests,
-                                int views);
+                                int views,
+                                List<CommentEventDto> comments);
 
     //Короткий DTO события
     @Mapping(target = "annotation", source = "event.annotation")

@@ -42,6 +42,10 @@ public class CommentServiceImpl implements CommentService {
         Event event = entityFinder.getEventOrThrow(eventId);
         LocalDateTime now = LocalDateTime.now();
 
+        if (event.getState() != State.PUBLISHED) {
+            throw new ConflictException("Нельзя написать комментарий на неопубликованное событие.");
+        }
+
         Comment comment = commentMapper.toComment(dto);
         comment.setAuthor(author);
         comment.setEvent(event);
