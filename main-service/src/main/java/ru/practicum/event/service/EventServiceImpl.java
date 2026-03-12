@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.StatsClient;
 import ru.practicum.category.model.Category;
+import ru.practicum.comment.dto.CommentEventDto;
+import ru.practicum.comment.repository.CommentRepository;
 import ru.practicum.common.EntityFinder;
 import ru.practicum.dto.request.ViewStatsParamDto;
 import ru.practicum.dto.response.ViewStatsDto;
@@ -45,6 +47,7 @@ public class EventServiceImpl implements EventService {
     private final EventMapper eventMapper;
     private final StatsClient statsClient;
     private final EntityFinder entityFinder;
+    private final CommentRepository commentRepository;
 
     // PUBLIC
 
@@ -106,8 +109,10 @@ public class EventServiceImpl implements EventService {
 
         long confirmed = requestRepository.confirmedCount(event.getId());
         int views = fetchViewsForSingleEvent(event);
+        List<CommentEventDto> comments =
+                commentRepository.findPublishedByEventIds(List.of(event.getId()));
 
-        return eventMapper.toEventFullDto(event, (int) confirmed, views);
+        return eventMapper.toEventFullDto(event, (int) confirmed, views, comments);
     }
 
     // ADMIN
@@ -124,12 +129,14 @@ public class EventServiceImpl implements EventService {
         //просмотры и количество подтвержденных заявок
         Map<Long, Integer> viewsMap = fetchViews(events);
         Map<Long, Long> confirmedMap = fetchConfirmedCounts(events);
+        Map<Long, List<CommentEventDto>> commentsMap = fetchComments(events);
 
         List<EventFullDto> result = new ArrayList<>();
         for (Event e : events) {
             long confirmed = confirmedMap.getOrDefault(e.getId(), 0L);
             int views = viewsMap.getOrDefault(e.getId(), 0);
-            result.add(eventMapper.toEventFullDto(e, (int) confirmed, views));
+            List<CommentEventDto> comments = commentsMap.getOrDefault(e.getId(), Collections.emptyList());
+            result.add(eventMapper.toEventFullDto(e, (int) confirmed, views, comments));
         }
         return result;
     }
@@ -196,7 +203,7 @@ public class EventServiceImpl implements EventService {
 
         long confirmed = requestRepository.confirmedCount(event.getId());
         int views = fetchViewsForSingleEvent(event);
-        return eventMapper.toEventFullDto(event, (int) confirmed, views);
+        return eventMapper.toEventFullDto(event, (int) confirmed, views, List.of());
     }
 
     // PRIVATE (user)
@@ -225,7 +232,7 @@ public class EventServiceImpl implements EventService {
 
         Event saved = eventRepository.save(event);
         // Новое событие ещё никто не смотрел
-        return eventMapper.toEventFullDto(saved, 0, 0);
+        return eventMapper.toEventFullDto(saved, 0, 0, List.of());
     }
 
     @Override
@@ -261,7 +268,9 @@ public class EventServiceImpl implements EventService {
 
         long confirmed = requestRepository.confirmedCount(event.getId());
         int views = fetchViewsForSingleEvent(event);
-        return eventMapper.toEventFullDto(event, (int) confirmed, views);
+        List<CommentEventDto> comments =
+                commentRepository.findPublishedByEventIds(List.of(event.getId()));
+        return eventMapper.toEventFullDto(event, (int) confirmed, views, comments);
     }
 
     @Override
@@ -325,7 +334,7 @@ public class EventServiceImpl implements EventService {
 
         long confirmed = requestRepository.confirmedCount(event.getId());
         int views = fetchViewsForSingleEvent(event);
-        return eventMapper.toEventFullDto(event, (int) confirmed, views);
+        return eventMapper.toEventFullDto(event, (int) confirmed, views, List.of());
     }
 
     @Override
@@ -559,5 +568,20 @@ public class EventServiceImpl implements EventService {
                 .toList();
 
         return requestRepository.confirmedCount(ids);
+    }
+
+    private Map<Long, List<CommentEventDto>> fetchComments(List<Event> events) {
+        if (events == null || events.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<Long> ids = events.stream()
+                .map(Event::getId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        List<CommentEventDto> comments = commentRepository.findPublishedByEventIds(ids);
+
+        return comments.stream().collect(Collectors.groupingBy(CommentEventDto::getEventId));
     }
 }

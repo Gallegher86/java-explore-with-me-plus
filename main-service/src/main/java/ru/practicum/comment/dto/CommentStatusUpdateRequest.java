@@ -2,13 +2,20 @@ package ru.practicum.comment.dto;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CommentStatusUpdateRequest {
     @NotEmpty()
-    @NotNull()
-    private List<Long> commentIds;
+    private Set<@NotNull Long> commentIds;
 
     @NotNull()
     private CommentStateActionAdmin stateAction;
