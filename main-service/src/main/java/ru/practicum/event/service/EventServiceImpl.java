@@ -447,7 +447,7 @@ public class EventServiceImpl implements EventService {
             }
             if (end != null) {
                 if (start != null && end.isBefore(start)) {
-                    throw new IllegalArgumentException("Дата конца события не может быть раньше даты начала");
+                    throw new BadRequestException("Дата конца события не может быть раньше даты начала");
                 }
                 predicate = predicate.and(event.eventDate.loe(end));
             }
@@ -479,7 +479,7 @@ public class EventServiceImpl implements EventService {
         }
         if (end != null) {
             if (start != null && end.isBefore(start)) {
-                throw new IllegalArgumentException("Дата конца события не может быть раньше даты начала");
+                throw new BadRequestException("Дата конца события не может быть раньше даты начала");
             }
             predicate = predicate.and(event.eventDate.loe(end));
         }

@@ -13,12 +13,16 @@ import ru.practicum.comment.repository.CommentRepository;
 import ru.practicum.common.EntityFinder;
 import ru.practicum.event.dto.State;
 import ru.practicum.event.model.Event;
+import ru.practicum.exception.BadRequestException;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.user.model.User;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ru.practicum.comment.model.QComment.comment;
 
@@ -71,8 +75,10 @@ public class CommentServiceImpl implements CommentService {
                     + " от пользователя " + userId + " не найден, обновление невозможно.");
         }
 
-        if (saved.getState() == State.PUBLISHED) {
-            throw new ConflictException("Нельзя изменить опубликованный комментарий.");
+        if (saved.getState() != State.PENDING && saved.getState() != State.CANCELED) {
+            throw new ConflictException(
+                    "Комментарий в статусе " + saved.getState() + " нельзя изменить."
+            );
         }
 
         if (request.getText() != null) {
@@ -111,11 +117,10 @@ public class CommentServiceImpl implements CommentService {
     public List<CommentShortDto> approveComments(CommentStatusUpdateRequest request) {
         log.info("CommentService: получен запрос админа на изменение статуса комментариев с id: {}.",
                 request.getCommentIds());
-        List<Comment> comments = commentRepository.findAllByIdIn(request.getCommentIds());
+        List<Comment> comments = commentRepository.findAllByIdInWithAuthorAndEvent(request.getCommentIds());
 
-        if (comments.size() != request.getCommentIds().size()) {
-            throw new NotFoundException("В полученном списке комментариев есть не существующие.");
-        }
+        validateCommentsExist(comments, request.getCommentIds());
+        validateCommentState(comments);
 
         State newState = request.getStateAction() == CommentStateActionAdmin.APPROVE_COMMENT
                 ? State.PUBLISHED
@@ -164,7 +169,7 @@ public class CommentServiceImpl implements CommentService {
         LocalDateTime end = params.getRangeEnd();
 
         if (start != null && end != null && end.isBefore(start)) {
-            throw new IllegalArgumentException("Дата конца выборки комментариев " +
+            throw new BadRequestException("Дата конца выборки комментариев " +
                     "не может быть раньше даты начала");
         }
 
@@ -198,5 +203,32 @@ public class CommentServiceImpl implements CommentService {
         }
 
         return predicate;
+    }
+
+    private void validateCommentsExist(List<Comment> comments, Set<Long> requestIds) {
+        Set<Long> foundIds = comments.stream()
+                .map(Comment::getId)
+                .collect(Collectors.toSet());
+
+        Set<Long> missingIds = new HashSet<>(requestIds);
+        missingIds.removeAll(foundIds);
+
+        if (!missingIds.isEmpty()) {
+            throw new NotFoundException("Следующие комментарии не найдены: " + missingIds);
+        }
+    }
+
+    private void validateCommentState(List<Comment> comments) {
+        List<Long> invalidComments = comments.stream()
+                .filter(c -> c.getState() != State.PENDING)
+                .map(Comment::getId)
+                .toList();
+
+        if (!invalidComments.isEmpty()) {
+            throw new ConflictException(
+                    "Следующие комментарии нельзя модерировать, так как они не в статусе PENDING: "
+                            + invalidComments
+            );
+        }
     }
 }
