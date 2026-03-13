@@ -22,7 +22,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long>, Queryds
             "LEFT JOIN FETCH c.event e " +
             "WHERE c.id IN :commentIds " +
             "ORDER BY c.id")
-    List<Comment> findAllByIdIn(Set<Long> commentIds);
+    List<Comment> findAllByIdInWithAuthorAndEvent(Set<Long> commentIds);
 
     @EntityGraph(attributePaths = {"author", "event"})
     Page<Comment> findAll(Predicate predicate, Pageable pageable);
