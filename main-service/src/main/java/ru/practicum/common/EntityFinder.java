@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
+import ru.practicum.comment.model.Comment;
+import ru.practicum.comment.repository.CommentRepository;
 import ru.practicum.compilation.model.Compilation;
 import ru.practicum.compilation.repository.CompilationRepository;
 import ru.practicum.event.model.Event;
@@ -20,6 +22,7 @@ public class EntityFinder {
     private final CategoryRepository categoryRepository;
     private final EventRepository eventRepository;
     private final CompilationRepository compilationRepository;
+    private final CommentRepository commentRepository;
 
     public User getUserOrThrow(Long id) {
         return userRepository.findById(id)
@@ -39,5 +42,10 @@ public class EntityFinder {
     public Compilation getCompilationOrThrow(Long id) {
         return compilationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Компиляция с id=" + id + " не найдена"));
+    }
+
+    public Comment getCommentOrThrow(Long id) {
+        return commentRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Комментарий с id=" + id + " не найден"));
     }
 }
